@@ -367,11 +367,21 @@
       try {
         const round = v => Math.round(v*10000)/10000;
         const compressPoints = pts => pts.map(p => ({ x: round(p.x), y: round(p.y) }));
-        const payload = {
-          strokes: strokes.map(s => ({ type:s.type, color:s.color, widthNorm:Math.round((s.widthNorm||0.004)*100000)/100000, points:compressPoints(s.points) })),
-          authorName: (authorNameInput.value||'').slice(0,80),
-          ownerId: localStorage.getItem(OWNER_KEY),
-          createdAt: serverTimestamp()
+       const payload = {
+  strokes: strokes.map(s => ({
+    type: s.type,
+    color: s.color,
+    widthNorm: Math.round((s.widthNorm || 0.004) * 100000)/100000,
+    points: compressPoints(s.points)
+  })),
+  notice: (noticeInput.value || '').slice(0,200),
+
+  // ★追加：X投稿用テキスト
+  xText: `初詣 ずずノ神社で絵馬を書きました⛩️\n#ずずノ神社`,
+
+  createdAt: serverTimestamp()
+
+
         };
         await addDoc(collection(db, 'emas'), payload);
         alert('保存しました！ホームに戻ります。');
@@ -432,6 +442,27 @@
 
         wrap.appendChild(thumb);
         const meta = document.createElement('div'); meta.className='meta';
+        // ★Xへ行くボタンを追加
+const xBtn = document.createElement('button');
+xBtn.textContent = 'Xへ行く';
+xBtn.style.fontSize = '12px';
+xBtn.style.padding = '4px 8px';
+xBtn.style.borderRadius = '6px';
+xBtn.style.border = '1px solid #ccc';
+xBtn.style.cursor = 'pointer';
+
+xBtn.onclick = () => {
+  const text = encodeURIComponent(item.xText || '初詣 ずずノ神社⛩️');
+  const url = encodeURIComponent(location.href);
+  window.open(
+    `https://x.com/intent/post?text=${text}&url=${url}`,
+    '_blank'
+  );
+};
+
+meta.appendChild(xBtn);
+
+        
         const leftspan = document.createElement('div'); leftspan.style.display='flex'; leftspan.style.alignItems='center';
         const nameEl = document.createElement('span'); nameEl.className='author'; nameEl.textContent = item.authorName ? `by ${item.authorName}` : 'by 匿名';
         leftspan.appendChild(nameEl);
