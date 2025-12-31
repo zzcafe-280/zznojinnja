@@ -565,17 +565,19 @@
     }
 
     qs('#btn-gallery').addEventListener('click', ()=>{
-      fetchGalleryOnce();
-      if (window._galleryUnsub) window._galleryUnsub();
-      const q = query(collection(db, 'emas'), orderBy('createdAt','desc'));
-      window._galleryUnsub = onSnapshot(q, snap => {
-        const items = [];
-        snap.forEach(d => items.push({ id: d.id, ...d.data() }));
-        renderGallery(items);
-      }, err => {
-        console.error('onSnapshot gallery error', err);
-      });
-    });
+  showScreen('gallery'); // ★これを追加
+  fetchGalleryOnce();
+  if (window._galleryUnsub) window._galleryUnsub();
+  const q = query(collection(db, 'emas'), orderBy('createdAt','desc'));
+  window._galleryUnsub = onSnapshot(q, snap => {
+    const items = [];
+    snap.forEach(d => items.push({ id: d.id, ...d.data() }));
+    renderGallery(items);
+  }, err => {
+    console.error('onSnapshot gallery error', err);
+  });
+});
+
     backFromGallery.addEventListener('click', ()=>{
       if (window._galleryUnsub){ window._galleryUnsub(); window._galleryUnsub = null; }
       showScreen('home');
