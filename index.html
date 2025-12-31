@@ -231,6 +231,11 @@
     const sizeRange = qs('#size-range');
     const sizeVal = qs('#size-val');
     const clearBtn = qs('#clear-canvas');
+    clearBtn.addEventListener('click', ()=>{
+  if (!confirm('描いた線をすべて消しますか？（背景はそのまま）')) return;
+  strokes = [];
+  redrawStrokes();
+});
     const saveBtn = qs('#save-ema');
 
     const bgCanvas = qs('#bg-canvas');
