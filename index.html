@@ -517,17 +517,53 @@ shareXBtn.addEventListener('click', () => {
 
   // 一時的に画像を新規タブで開く（Xが画像を拾いやすくなる）
   const imgWindow = window.open();
-  imgWindow.document.write(`
-    <html>
-      <head><title>絵馬画像</title></head>
-      <body style="margin:0;display:flex;justify-content:center;align-items:center;background:#f5f5f5">
-        <img src="${dataUrl}" style="max-width:100%;height:auto"/>
-        <p style="position:fixed;bottom:10px;font-size:12px;color:#666">
-          画像を長押し or 右クリックで保存 → Xに投稿してください
-        </p>
-      </body>
-    </html>
-  `);
+const tweetText = encodeURIComponent('初詣ずずノ神社で絵馬を書きました！ #ズズ絵馬');
+const tweetUrl = `https://twitter.com/intent/tweet?text=${tweetText}`;
+
+imgWindow.document.write(`
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <title>絵馬画像</title>
+</head>
+<body style="
+  margin:0;
+  background:#f5f5f5;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:16px;
+">
+  <img src="${dataUrl}" style="max-width:90%;height:auto;box-shadow:0 6px 20px rgba(0,0,0,.15);border-radius:8px"/>
+
+  <div style="
+    display:flex;
+    gap:12px;
+    align-items:center;
+    font-size:13px;
+    color:#555;
+  ">
+    <span>画像を保存して投稿できます</span>
+
+    <button onclick="window.open('${tweetUrl}', '_blank')"
+      style="
+        background:#000;
+        color:#fff;
+        border:none;
+        padding:8px 14px;
+        border-radius:999px;
+        cursor:pointer;
+        font-size:13px;
+      ">
+      Xへ行く
+    </button>
+  </div>
+</body>
+</html>
+`);
+
 
   // X投稿画面を開く（テキスト入り）
   const text = encodeURIComponent('初詣ずずノ神社で絵馬を書きました！ #ズズ絵馬');
