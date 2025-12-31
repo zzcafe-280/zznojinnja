@@ -442,26 +442,7 @@
 
         wrap.appendChild(thumb);
         const meta = document.createElement('div'); meta.className='meta';
-        // ★Xへ行くボタンを追加
-const xBtn = document.createElement('button');
-xBtn.textContent = 'Xへ行く';
-xBtn.style.fontSize = '12px';
-xBtn.style.padding = '4px 8px';
-xBtn.style.borderRadius = '6px';
-xBtn.style.border = '1px solid #ccc';
-xBtn.style.cursor = 'pointer';
-
-xBtn.onclick = () => {
-  const text = encodeURIComponent(item.xText || '初詣 ずずノ神社⛩️');
-  const url = encodeURIComponent(location.href);
-  window.open(
-    `https://x.com/intent/post?text=${text}&url=${url}`,
-    '_blank'
-  );
-};
-
-meta.appendChild(xBtn);
-
+      
         
         const leftspan = document.createElement('div'); leftspan.style.display='flex'; leftspan.style.alignItems='center';
         const nameEl = document.createElement('span'); nameEl.className='author'; nameEl.textContent = item.authorName ? `by ${item.authorName}` : 'by 匿名';
@@ -543,29 +524,58 @@ shareOmikujiBtn.addEventListener('click', () => {
     return;
   }
 
-  // おみくじ用投稿文
-  const tweetText = encodeURIComponent('おみくじを引きました！ #ユメのおみくじ');
-  const tweetUrl = `https://twitter.com/intent/tweet?text=${tweetText}`;
+  const tweetText = encodeURIComponent(
+    'おみくじを引きました！⛩️ 初詣 ずずノ神社 #ズズ絵馬'
+  );
+  const tweetUrl = `https://x.com/intent/post?text=${tweetText}`;
 
-  // 画像は表示せず、保存可能な形で一度だけ開く（裏導線）
-  const imgWindow = window.open();
-  imgWindow.document.write(`
-    <!doctype html>
-    <html lang="ja">
-    <head><meta charset="utf-8"><title>おみくじ画像</title></head>
-    <body style="margin:0;display:flex;justify-content:center;align-items:center;background:#f5f5f5">
-      <img src="${lastOmikujiImageUrl}" style="max-width:100%;height:auto"/>
-      <p style="position:fixed;bottom:10px;font-size:12px;color:#666">
-        この画像を保存してXに投稿できます
-      </p>
-    </body>
-    </html>
-  `);
+  const w = window.open();
+  w.document.write(`
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<title>おみくじ共有</title>
+</head>
+<body style="
+  margin:0;
+  font-family:sans-serif;
+  background:#fffaf2;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:16px;
+  padding:20px;
+">
 
-  // X投稿画面を開く（#ユメのおみくじ 入り）
-  window.open(tweetUrl, '_blank');
+  <img src="${lastOmikujiImageUrl}"
+    style="max-width:80%;border-radius:10px;
+    box-shadow:0 6px 20px rgba(0,0,0,.15)" />
+
+  <div style="font-size:14px;color:#555;text-align:center">
+    この結果をXで共有できます<br>
+    そして、みんなの願いも覗いてみませんか？
+  </div>
+
+  <div style="display:flex;gap:12px;flex-wrap:wrap;justify-content:center">
+    <button onclick="window.open('${tweetUrl}','_blank')"
+      style="background:#000;color:#fff;border:none;
+      padding:10px 16px;border-radius:999px;cursor:pointer">
+      Xで共有
+    </button>
+
+    <button onclick="window.opener.showScreen('gallery'); window.close();"
+      style="background:#fff;border:1px solid #ccc;
+      padding:10px 16px;border-radius:999px;cursor:pointer">
+      みんなの絵馬を見る
+    </button>
+  </div>
+
+</body>
+</html>
+`);
 });
-
 
     // ===== X投稿用 絵馬画像生成 =====
 const shareXBtn = document.getElementById('share-x');
