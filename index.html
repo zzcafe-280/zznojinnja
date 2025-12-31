@@ -32,7 +32,9 @@
     .tool.active{border-color:var(--accent); box-shadow:0 2px 0 rgba(178,34,34,0.1)}
     .canvas-wrap{display:flex; justify-content:center; padding:8px; position:relative}
     .ema-layer{position:absolute; left:0; top:0; width:100%; height:100%}
-    #bg-canvas, #strokes-canvas { border-radius:8px; box-shadow:0 6px 24px rgba(0,0,0,0.08); background:var(--paper); touch-action:none; display:block; }
+    #bg-canvas, #strokes-canvas { border-radius:8px; box-shadow:0 6px 24px rgba(0,0,0,0.08); background:transparent; touch-action:none; display:block; }
+    #bg-canvas { z-index:1; pointer-events:none; } /* background never receives pointer events */
+    #strokes-canvas { z-index:2; }
     .palette{display:flex; gap:6px; align-items:center; padding-left:8px}
     .swatch{width:28px; height:28px; border-radius:6px; border:2px solid rgba(255,255,255,0.6); box-shadow:0 1px 0 rgba(0,0,0,0.06); cursor:pointer}
     .swatch.selected{outline:3px solid rgba(0,0,0,0.12)}
@@ -42,7 +44,7 @@
     .secondary{background:#fff; border:1px solid #ddd; padding:10px 16px; border-radius:8px; cursor:pointer}
     .gallery-row{display:flex; gap:12px; overflow-x:auto; padding:12px 8px; align-items:flex-start}
     .gallery-item{min-width:240px; border-radius:8px; background:white; padding:6px; box-shadow:0 4px 10px rgba(0,0,0,0.06)}
-    .gallery-item canvas{display:block; width:100%; height:auto; border-radius:6px}
+    .gallery-item canvas{display:block; width:100%; height:auto; border-radius:6px; background:transparent}
     .meta{display:flex; justify-content:space-between; align-items:center; margin-top:6px}
     .author{font-size:12px; color:#666; margin-left:6px}
     .omikuji-area{display:flex; justify-content:center; align-items:center; min-height:320px; gap:12px; flex-direction:column}
@@ -64,7 +66,7 @@
   <div id="app">
     <header class="header">
       <h1>初詣 ずずノ神社</h1>
-      <p class="subtitle">いつでもご利用できます — 描画データは Firestore に保存</p>
+      <p class="subtitle"></p>
     </header>
 
     <main>
@@ -77,7 +79,6 @@
       </section>
 
       <section id="draw" class="screen">
-        <!-- 注意書き：欄ではなく上に固定表示 -->
         <div style="text-align:center; font-size:13px; color:#555; margin-bottom:8px;">
           SNSなどで紹介することがあります。広く見られてもよい願い・絵のみお書きください。
         </div>
@@ -195,7 +196,8 @@
       },
       emaBackgroundUrl: "https://raw.githubusercontent.com/zzcafe-280/zznojinnja/main/ema.png",
       omikujiMediaUrl: "https://raw.githubusercontent.com/zzcafe-280/zznojinnja/main/omikuji.mp4",
-      omikujiResultImages: [ "https://raw.githubusercontent.com/zzcafe-280/zznojinnja/main/daikichi1.png",
+      omikujiResultImages: [
+        "https://raw.githubusercontent.com/zzcafe-280/zznojinnja/main/daikichi1.png",
         "https://raw.githubusercontent.com/zzcafe-280/zznojinnja/main/daikichi2.png",
         "https://raw.githubusercontent.com/zzcafe-280/zznojinnja/main/daikichi3.png",
                 "https://raw.githubusercontent.com/zzcafe-280/zznojinnja/main/suekichi1.png",
@@ -213,30 +215,27 @@
                 "https://raw.githubusercontent.com/zzcafe-280/zznojinnja/main/kyou1.png",
                 "https://raw.githubusercontent.com/zzcafe-280/zznojinnja/main/kyou2.png",
                 "https://raw.githubusercontent.com/zzcafe-280/zznojinnja/main/kyou3.png"
-       
       ],
       clickSoundUrl: "https://raw.githubusercontent.com/zzcafe-280/zznojinnja/main/click.mp3"
     };
     // ---------- /設定 ----------
 
-    // simple UUID generator for ownerId
+    // UUID for owner identification (stored per-browser)
     function uid(){
       return 'u_' + ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g, c =>
         (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16)
       );
     }
-
-    // ensure ownerId exists in localStorage
     const OWNER_KEY = 'ema_owner_id_v1';
     if (!localStorage.getItem(OWNER_KEY)) localStorage.setItem(OWNER_KEY, uid());
 
     const app = initializeApp(CONFIG.firebaseConfig);
     const db = getFirestore(app);
 
-    // DOM helpers
     const qs = s => document.querySelector(s);
     const qsa = s => document.querySelectorAll(s);
 
+    // UI elements
     const btnDraw = qs('#btn-draw');
     const btnGallery = qs('#btn-gallery');
     const btnOmikuji = qs('#btn-omikuji');
@@ -245,16 +244,15 @@
     const backFromOmikuji = qs('#back-from-omikuji');
 
     const authorNameInput = qs('#author-name');
-    const noticeStatic = qs('.subtitle'); // not used for save now
     const toolPen = qs('#tool-pen');
     const toolEraser = qs('#tool-eraser');
     const sizeRange = qs('#size-range');
     const sizeVal = qs('#size-val');
     const saveBtn = qs('#save-ema');
 
+    const canvasWrap = qs('#canvas-wrap');
     const bgCanvas = qs('#bg-canvas');
     const strokesCanvas = qs('#strokes-canvas');
-    const canvasWrap = qs('#canvas-wrap');
 
     const galleryRow = qs('#gallery-row');
 
@@ -264,7 +262,7 @@
 
     const clickAudio = CONFIG.clickSoundUrl ? new Audio(CONFIG.clickSoundUrl) : null;
 
-    // admin
+    // admin UI
     const ADMIN_KEY = 'ema_isAdmin_v1';
     const adminOpenBtn = qs('#admin-open-btn');
     const adminModal = qs('#admin-modal');
@@ -278,74 +276,56 @@
     const adminBadge = qs('#admin-badge');
     function isAdminUser(){ return localStorage.getItem(ADMIN_KEY) === '1'; }
 
-    // contexts and logical size
+    // 2D contexts and logical size
     const bgCtx = bgCanvas.getContext('2d');
     const sCtx = strokesCanvas.getContext('2d');
     const LOGICAL_W = 1640;
     const LOGICAL_H = 1040;
 
-    // Resize handling: use ResizeObserver on wrapper to handle display changes (prevents zero-height issues)
+    // ResizeObserver to avoid transient zero-size canvas problems
     function resizeLayerCanvases(){
-      // ensure wrapper has size; if 0, defer until visible
       const wrapRect = canvasWrap.getBoundingClientRect();
-      // if wrapper not sized (e.g. display:none), do nothing; caller should call again after showing
-      if (wrapRect.width === 0 || wrapRect.height === 0) {
-        // fallback: set css width based on window
-        const maxWidth = Math.min(window.innerWidth - 40, 820);
-        const cssH = (LOGICAL_H / LOGICAL_W) * maxWidth;
-        bgCanvas.style.width = `${maxWidth}px`; bgCanvas.style.height = `${cssH}px`;
-        strokesCanvas.style.width = `${maxWidth}px`; strokesCanvas.style.height = `${cssH}px`;
-      } else {
-        // set logical pixel size and CSS size
-        bgCanvas.width = LOGICAL_W; bgCanvas.height = LOGICAL_H;
-        strokesCanvas.width = LOGICAL_W; strokesCanvas.height = LOGICAL_H;
-        bgCanvas.style.width = `${wrapRect.width}px`; bgCanvas.style.height = `${wrapRect.height}px`;
-        strokesCanvas.style.width = `${wrapRect.width}px`; strokesCanvas.style.height = `${wrapRect.height}px`;
-      }
+      // If wrapper not visible/0-size, set reasonable CSS size and don't set pixel size yet.
+      const maxWidth = Math.min(window.innerWidth - 40, 820);
+      const cssWidth = wrapRect.width > 0 ? wrapRect.width : maxWidth;
+      const cssHeight = (LOGICAL_H / LOGICAL_W) * cssWidth;
+      // Always set CSS size so canvases render visually; set backing store size to logical for consistent coordinates
+      bgCanvas.style.width = `${cssWidth}px`; bgCanvas.style.height = `${cssHeight}px`;
+      strokesCanvas.style.width = `${cssWidth}px`; strokesCanvas.style.height = `${cssHeight}px`;
+      // set backing pixel size (logical) to keep normalized coords consistent
+      bgCanvas.width = LOGICAL_W; bgCanvas.height = LOGICAL_H;
+      strokesCanvas.width = LOGICAL_W; strokesCanvas.height = LOGICAL_H;
     }
     const ro = new ResizeObserver(()=> resizeLayerCanvases());
     ro.observe(canvasWrap);
-    window.addEventListener('resize', ()=> { setTimeout(resizeLayerCanvases, 50); });
+    window.addEventListener('resize', ()=> setTimeout(resizeLayerCanvases, 50));
 
-    // load background image and draw on bg canvas
+    // Load background image and keep "loaded" promise
     const emaImage = new Image();
     emaImage.crossOrigin = "anonymous";
     emaImage.src = CONFIG.emaBackgroundUrl;
-    emaImage.addEventListener('load', ()=>{
-      // ensure canvases are sized before drawing (in case image loads early)
-      resizeLayerCanvases();
-      drawBackground();
-      redrawStrokes();
-    });
-    emaImage.addEventListener('error', (e)=>{
-      console.warn('背景画像の読み込みに失敗しました:', CONFIG.emaBackgroundUrl, e);
-      // still draw blank background
-      drawBackground();
+    let emaLoaded = false;
+    const waitForEma = new Promise(resolve => {
+      emaImage.addEventListener('load', () => { emaLoaded = true; resolve(true); resizeLayerCanvases(); drawBackground(); redrawStrokes(); });
+      emaImage.addEventListener('error', (e) => { console.warn('ema.png load failed', e); resolve(false); });
     });
 
     function drawBackground(){
-      // ensure logical size present
+      // ensure logical size and clear
       bgCanvas.width = LOGICAL_W; bgCanvas.height = LOGICAL_H;
       bgCtx.clearRect(0,0,LOGICAL_W,LOGICAL_H);
-      try {
+      if (emaLoaded && emaImage.naturalWidth > 0){
         bgCtx.drawImage(emaImage, 0, 0, LOGICAL_W, LOGICAL_H);
-      } catch(e){
-        bgCtx.fillStyle='#fff'; bgCtx.fillRect(0,0,LOGICAL_W,LOGICAL_H);
+      } else {
+        // If emaImage not loaded, DON'T fill white (leave transparent) so erased areas show transparency correctly.
+        // But to give user feedback, draw a faint placeholder frame.
+        bgCtx.fillStyle = 'rgba(255,255,255,0.0)';
+        bgCtx.fillRect(0,0,LOGICAL_W,LOGICAL_H);
       }
-      // show static notice on bg canvas as part of background (optional)
-      const notice = "SNSなどで紹介することがあります。広く見られてもよい願い・絵のみお書きください。";
-      if (notice){
-        bgCtx.save();
-        bgCtx.fillStyle = "rgba(0,0,0,0.92)";
-        const fontSize = Math.floor(LOGICAL_W / 40);
-        bgCtx.font = `bold ${fontSize}px "Hiragino Kaku Gothic ProN", "Noto Sans JP", sans-serif`;
-        bgCtx.textAlign = "center";
-        bgCtx.fillText(notice, LOGICAL_W/2, fontSize + 10);
-        bgCtx.restore();
-      }
+      // Static notice is shown in DOM above; do not write notice onto bg canvas (keeps bg pure)
     }
 
-    // strokes data
+    // strokes: normalized coords
     let strokes = [];
     let drawing = false;
     let currentStroke = null;
@@ -353,7 +333,7 @@
     let penSize = parseInt(sizeRange.value,10) || 6;
     sizeVal.textContent = penSize;
 
-    // palette
+    // palette (colors requested)
     const PALETTE = [
       {name:'桃色', color:'#ffb6c1'},
       {name:'赤',   color:'#ff3b30'},
@@ -383,7 +363,7 @@
       paletteEl.appendChild(sw);
     });
 
-    // pointer normalization
+    // pointer mapping (screen -> normalized [0..1])
     function getPointerInLogical(e){
       const rect = strokesCanvas.getBoundingClientRect();
       const clientX = (e.clientX !== undefined) ? e.clientX : (e.touches && e.touches[0].clientX);
@@ -392,11 +372,11 @@
       const yRatio = (clientY - rect.top) / rect.height;
       const x = Math.max(0, Math.min(1, xRatio));
       const y = Math.max(0, Math.min(1, yRatio));
-      return { x, y, lx: x * LOGICAL_W, ly: y * LOGICAL_H };
+      return { x, y };
     }
 
     function beginStroke(e){
-      // ensure canvas properly sized
+      // ensure correct canvas size before starting
       resizeLayerCanvases();
       drawing = true;
       const p = getPointerInLogical(e);
@@ -407,13 +387,14 @@
         widthNorm,
         points: [{x: p.x, y: p.y}]
       };
+      // immediate render
+      redrawStrokes();
     }
     function moveStroke(e){
       if (!drawing || !currentStroke) return;
       const p = getPointerInLogical(e);
-      // reduce duplicate points
       const last = currentStroke.points[currentStroke.points.length - 1];
-      if (last && Math.hypot((last.x - p.x), (last.y - p.y)) < 0.0005) return;
+      if (last && Math.hypot(last.x - p.x, last.y - p.y) < 0.0005) return; // avoid dense duplicates
       currentStroke.points.push({x: p.x, y: p.y});
       redrawStrokes();
     }
@@ -425,20 +406,19 @@
       redrawStrokes();
     }
 
-    // pointer events
     strokesCanvas.addEventListener('pointerdown', (e)=>{ strokesCanvas.setPointerCapture(e.pointerId); beginStroke(e); });
     strokesCanvas.addEventListener('pointermove', moveStroke);
     strokesCanvas.addEventListener('pointerup', (e)=>{ strokesCanvas.releasePointerCapture(e.pointerId); endStroke(e); });
     strokesCanvas.addEventListener('pointerout', endStroke);
     strokesCanvas.addEventListener('pointercancel', endStroke);
 
-    // tools
     toolPen.addEventListener('click', ()=>{ tool = 'pen'; toolPen.classList.add('active'); toolEraser.classList.remove('active'); });
     toolEraser.addEventListener('click', ()=>{ tool = 'eraser'; toolEraser.classList.add('active'); toolPen.classList.remove('active'); });
     sizeRange.addEventListener('input', (e)=>{ penSize = parseInt(e.target.value,10); sizeVal.textContent = penSize; });
 
     function redrawStrokes(){
-      // ensure logical canvas size
+      // Ensure logical backing size before drawing
+      strokesCanvas.width = LOGICAL_W; strokesCanvas.height = LOGICAL_H;
       sCtx.clearRect(0,0,LOGICAL_W,LOGICAL_H);
       const all = strokes.concat(currentStroke ? [currentStroke] : []);
       for (const st of all){
@@ -466,7 +446,7 @@
       sCtx.globalCompositeOperation = 'source-over';
     }
 
-    // Save: include ownerId and authorName
+    // Save strokes to Firestore with owner and authorName
     saveBtn.addEventListener('click', async ()=>{
       if (clickAudio) clickAudio.play().catch(()=>{});
       saveBtn.disabled = true;
@@ -499,13 +479,17 @@
       }
     });
 
-    // Gallery fetch & render; deletion allowed only to owner or admin
+    // Gallery: ensure emaImage loaded before rendering thumbnails — if not loaded, re-render after loaded
     async function fetchGalleryOnce(){
       try {
         const q = query(collection(db, 'emas'), orderBy('createdAt','desc'));
         const snap = await getDocs(q);
         const items = [];
         snap.forEach(d => items.push({ id: d.id, ...d.data() }));
+        // if background not loaded yet, wait a bit so thumbnails render correctly
+        if (!emaLoaded) {
+          await waitForEma;
+        }
         renderGallery(items);
       } catch (err){
         console.error('fetchGalleryOnce', err);
@@ -518,18 +502,49 @@
       items.forEach(item => {
         const wrap = document.createElement('div');
         wrap.className = 'gallery-item';
-        const TH_W = 720; // render thumbnail at a reasonable width
+        const TH_W = 720;
         const TH_H = Math.round((LOGICAL_H / LOGICAL_W) * TH_W);
         const thumb = document.createElement('canvas');
         thumb.width = TH_W; thumb.height = TH_H;
         const tctx = thumb.getContext('2d');
 
-        // draw background
-        if (emaImage.complete){
-          try { tctx.drawImage(emaImage, 0, 0, TH_W, TH_H); } catch(e){ tctx.fillStyle='#fff'; tctx.fillRect(0,0,TH_W,TH_H); }
-        } else { tctx.fillStyle='#fff'; tctx.fillRect(0,0,TH_W,TH_H); }
+        // draw background image onto thumbnail. If ema not loaded, leave transparent and schedule re-render once loaded.
+        if (emaLoaded && emaImage.naturalWidth > 0){
+          tctx.drawImage(emaImage, 0, 0, TH_W, TH_H);
+        } else {
+          // do NOT fill white — leave transparent so destination-out eraser works correctly visually
+          tctx.clearRect(0,0,TH_W,TH_H);
+          // schedule redraw when ema loaded
+          waitForEma.then(() => {
+            // re-render this specific thumbnail (if still in DOM)
+            try {
+              tctx.clearRect(0,0,TH_W,TH_H);
+              tctx.drawImage(emaImage, 0, 0, TH_W, TH_H);
+              // replay strokes after background drawn
+              if (item.strokes && Array.isArray(item.strokes)){
+                for (const st of item.strokes){
+                  if (st.type === 'pen') tctx.globalCompositeOperation = 'source-over';
+                  else tctx.globalCompositeOperation = 'destination-out';
+                  tctx.strokeStyle = st.color || '#000';
+                  tctx.lineWidth = (st.widthNorm || 0.004) * TH_W;
+                  tctx.lineCap = 'round';
+                  tctx.lineJoin = 'round';
+                  tctx.beginPath();
+                  for (let i=0;i<st.points.length;i++){
+                    const p = st.points[i];
+                    const x = p.x * TH_W;
+                    const y = p.y * TH_H;
+                    if (i===0) tctx.moveTo(x,y); else tctx.lineTo(x,y);
+                  }
+                  tctx.stroke();
+                }
+                tctx.globalCompositeOperation = 'source-over';
+              }
+            } catch(e){ console.warn('thumb redraw error', e); }
+          });
+        }
 
-        // replay strokes (keeping normalized coords -> positions match)
+        // draw strokes
         if (item.strokes && Array.isArray(item.strokes)){
           for (const st of item.strokes){
             if (st.type === 'pen') tctx.globalCompositeOperation = 'source-over';
@@ -563,7 +578,7 @@
         meta.appendChild(leftspan);
         meta.appendChild(time);
 
-        // deletion: only if ownerId matches or admin
+        // deletion: only owner or admin
         const myOwnerId = localStorage.getItem(OWNER_KEY);
         if (isAdminUser() || item.ownerId === myOwnerId){
           const del = document.createElement('button');
@@ -587,10 +602,10 @@
       });
     }
 
-    // imported 'doc' is needed in delete; if missing, create local wrapper to avoid reference error
-    // But we already imported doc above.
+    // need doc reference for deleteDoc; get it from firestore module - create wrapper to avoid missing import if not available
+    // (we imported doc at top)
 
-    // wiring gallery button
+    // gallery button: open and subscribe
     qs('#btn-gallery').addEventListener('click', ()=>{
       showScreen('gallery');
       fetchGalleryOnce();
@@ -629,14 +644,13 @@
       omikujiVideo.addEventListener('ended', onEnd);
     });
 
-    // navigation: when showing draw screen ensure canvases sized and background drawn
+    // navigation (ensure resize/redraw when showing draw)
     function showScreen(id){
       qsa('.screen').forEach(s => s.classList.remove('active'));
       qs('#' + id).classList.add('active');
       window.scrollTo({top:0, behavior:'smooth'});
-      // if showing draw, ensure resize and redraw AFTER layout
       if (id === 'draw'){
-        // call twice: next frame + small timeout to be robust
+        // ensure sizes and redrawing after layout
         requestAnimationFrame(()=>{ resizeLayerCanvases(); drawBackground(); redrawStrokes(); });
         setTimeout(()=>{ resizeLayerCanvases(); drawBackground(); redrawStrokes(); }, 80);
       }
@@ -699,8 +713,8 @@
     // init
     function init(){
       resizeLayerCanvases();
-      // If image already loaded, draw; else load handler will draw
-      drawBackground();
+      // if ema already loaded, draw background; else waitForEma handler draws
+      if (emaLoaded) drawBackground();
       redrawStrokes();
       updateAdminUI();
     }
