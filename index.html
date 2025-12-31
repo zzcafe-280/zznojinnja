@@ -1,1 +1,583 @@
-a
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>初詣 えまサイト（ワンファイル・管理者ボタン付き）</title>
+  <style>
+    :root{
+      --bg:#fffaf2;
+      --accent:#b22222;
+      --paper:#fffefb;
+      --text:#2b2b2b;
+    }
+    *{box-sizing:border-box}
+    html,body,#app{height:100%; margin:0; font-family: "Hiragino Kaku Gothic ProN","Noto Sans JP",system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;}
+    body{background:
+      radial-gradient(circle at 10% 10%, rgba(255, 230, 230,0.5), transparent 10%),
+      linear-gradient(180deg, #fffdf7 0%, #fff7f0 100%);
+      color:var(--text);
+      padding-bottom:120px;
+    }
+    .header{
+      text-align:center;
+      padding:20px 10px 0 10px;
+      background-image: linear-gradient(90deg, rgba(178,34,34,0.07), rgba(255,160,122,0.03));
+      border-bottom: 1px solid #ffe7e0;
+    }
+    .header h1{margin:0; color:var(--accent); font-size:1.8rem;}
+    .subtitle{margin:6px 0 12px 0; color:#6b6b6b}
+    .screen{display:none; padding:18px; max-width:1100px; margin:0 auto;}
+    .screen.active{display:block}
+    .buttons{display:flex; gap:12px; justify-content:center; flex-wrap:wrap; margin-top:30px}
+    .big{background:var(--accent); color:white; border:none; padding:18px 28px; font-size:1.2rem; border-radius:10px; cursor:pointer; box-shadow:0 6px 0 rgba(0,0,0,0.06)}
+    .big.disabled{opacity:0.55}
+    .big:active{transform:translateY(2px)}
+    .topbar{display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:10px; padding:6px 10px}
+    .tool-controls{display:flex; gap:8px; align-items:center}
+    .tool{padding:8px 10px; border-radius:8px; border:1px solid #ddd; background:white; cursor:pointer}
+    .tool.active{border-color:var(--accent); box-shadow:0 2px 0 rgba(178,34,34,0.1)}
+    .canvas-wrap{display:flex; justify-content:center; padding:8px}
+    #ema-canvas{width:820px; height:520px; border-radius:8px; box-shadow:0 6px 24px rgba(0,0,0,0.08); background:var(--paper); touch-action:none}
+    .actions{display:flex; justify-content:center; gap:12px; margin-top:12px}
+    .primary{background:var(--accent); color:white; border:none; padding:10px 16px; border-radius:8px; cursor:pointer}
+    .secondary{background:#fff; border:1px solid #ddd; padding:10px 16px; border-radius:8px; cursor:pointer}
+    .gallery-row{display:flex; gap:12px; overflow-x:auto; padding:12px 8px; align-items:flex-start}
+    .gallery-item{min-width:240px; border-radius:8px; background:white; padding:6px; box-shadow:0 4px 10px rgba(0,0,0,0.06)}
+    .gallery-item img{width:100%; display:block; border-radius:4px}
+    .meta{display:flex; justify-content:space-between; align-items:center; margin-top:6px}
+    .omikuji-area{display:flex; justify-content:center; align-items:center; min-height:320px; gap:12px; flex-direction:column}
+    .footer{position:fixed; left:18px; bottom:8px; color:#7a7a7a}
+    .admin-open-btn{
+      position:fixed; left:18px; bottom:18px; background:rgba(0,0,0,0.06); border-radius:8px; padding:8px 10px; cursor:pointer; font-size:12px; border:1px solid rgba(0,0,0,0.06)
+    }
+    .admin-badge{position:fixed; right:18px; bottom:18px; background:var(--accent); color:white; padding:6px 8px; border-radius:8px; font-size:12px; display:none}
+    .admin-badge.visible{display:block}
+    /* admin modal */
+    .admin-modal{
+      position:fixed; left:0; top:0; right:0; bottom:0; display:flex; align-items:center; justify-content:center; background:rgba(0,0,0,0.35);
+    }
+    .admin-box{background:white; padding:18px; border-radius:10px; width:320px; box-shadow:0 10px 30px rgba(0,0,0,0.2)}
+    .admin-box input{width:100%; padding:8px; margin-top:8px; margin-bottom:12px; box-sizing:border-box}
+    @media(max-width:880px){
+      #ema-canvas{width:92%}
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <header class="header">
+      <h1>初詣 えまの杜</h1>
+      <p class="subtitle">1/1 になったら使えます — 新年を祝おう</p>
+    </header>
+
+    <main>
+      <section id="home" class="screen active">
+        <div class="buttons">
+          <button id="btn-draw" class="big">絵馬を描く</button>
+          <button id="btn-gallery" class="big">絵馬を見る</button>
+          <button id="btn-omikuji" class="big">おみくじを引く</button>
+        </div>
+      </section>
+
+      <section id="draw" class="screen">
+        <div class="topbar">
+          <label style="flex:1">注意文 <input id="notice-input" type="text" placeholder="見られても良いものを描いてください" style="width:100%;padding:6px;margin-left:8px"/></label>
+          <div class="tool-controls">
+            <button id="tool-pen" class="tool active">ペン</button>
+            <button id="tool-eraser" class="tool">消しゴム</button>
+            <label style="display:flex;align-items:center;gap:6px">太さ <input id="size-range" type="range" min="1" max="40" value="6" /></label>
+            <button id="clear-canvas" class="tool">クリア</button>
+          </div>
+        </div>
+        <div class="canvas-wrap">
+          <canvas id="ema-canvas"></canvas>
+        </div>
+        <div class="actions">
+          <button id="save-ema" class="primary">保存</button>
+          <button id="back-from-draw" class="secondary">ホームへ</button>
+        </div>
+      </section>
+
+      <section id="gallery" class="screen">
+        <h2>みんなの絵馬</h2>
+        <div id="gallery-row" class="gallery-row"></div>
+        <div class="actions">
+          <button id="back-from-gallery" class="secondary">ホームへ</button>
+        </div>
+      </section>
+
+      <section id="omikuji" class="screen">
+        <h2>おみくじ</h2>
+        <div id="omikuji-area" class="omikuji-area">
+          <video id="omikuji-video" controls playsinline style="max-width:90%; display:none;"></video>
+          <img id="omikuji-result" alt="おみくじ結果" style="max-width:80%; display:none;" />
+        </div>
+        <div class="actions">
+          <button id="play-omikuji" class="primary">おみくじを再生</button>
+          <button id="back-from-omikuji" class="secondary">ホームへ</button>
+        </div>
+      </section>
+
+    </main>
+
+    <footer class="footer">
+      <small>神社風デザイン — 新年らしい演出をお楽しみください</small>
+    </footer>
+
+    <!-- 左下 小さな管理ボタン -->
+    <div id="admin-open-btn" class="admin-open-btn">管理</div>
+    <!-- 管理バッジ -->
+    <div id="admin-badge" class="admin-badge">Admin</div>
+
+    <!-- 管理モーダル（初期は非表示） -->
+    <div id="admin-modal" style="display:none" class="admin-modal" aria-hidden="true">
+      <div class="admin-box">
+        <div id="admin-modal-content">
+          <div id="admin-not-logged">
+            <div style="font-weight:bold">管理者ログイン</div>
+            <div style="margin-top:8px;font-size:13px;color:#666">パスワードを入力してください（ヒント：1122）</div>
+            <input id="admin-pass" type="password" placeholder="パスワード" />
+            <div style="display:flex;gap:8px;justify-content:flex-end">
+              <button id="admin-cancel" class="secondary">閉じる</button>
+              <button id="admin-login" class="primary">ログイン</button>
+            </div>
+          </div>
+          <div id="admin-logged" style="display:none">
+            <div style="font-weight:bold">管理者: ログイン中</div>
+            <div style="margin-top:8px;font-size:13px;color:#666">このブラウザでは常時管理者として操作できます。</div>
+            <div style="margin-top:12px; display:flex; gap:8px; justify-content:flex-end">
+              <button id="admin-logout" class="secondary">ログアウト</button>
+              <button id="admin-close" class="primary">閉じる</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script type="module">
+    // --- Firebase SDK (modular) ---
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
+    import { getFirestore, collection, addDoc, query, orderBy, getDocs, onSnapshot, serverTimestamp, doc, deleteDoc } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
+    import { getStorage, ref as storageRef, uploadBytes, getDownloadURL, deleteObject } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-storage.js";
+
+    // ----------------- 設定（必要に応じて編集） -----------------
+    const CONFIG = {
+      firebaseConfig: {
+        apiKey: "AIzaSyCvdaEW4o2y8rljlafXQJbGE-nuGQn9Q88",
+        authDomain: "zuzutomo-d8fa0.firebaseapp.com",
+        projectId: "zuzutomo-d8fa0",
+        storageBucket: "zuzutomo-d8fa0.appspot.com",
+        messagingSenderId: "637121353766",
+        appId: "1:637121353766:web:dbfb13f85bfaf521616ee7",
+        measurementId: "G-C6K64YE13X"
+      },
+      emaBackgroundUrl: "https://raw.githubusercontent.com/yumemiru28000/yumemirusougenn/main/ema.png",
+      omikujiMediaUrl: "https://raw.githubusercontent.com/yumemiru28000/yumemirusougenn/main/kieru.mp3",
+      omikujiResultImages: [
+        "https://raw.githubusercontent.com/yumemiru28000/yumemirusougenn/main/daikichi.png",
+        "https://raw.githubusercontent.com/yumemiru28000/yumemirusougenn/main/tyuukichi.png",
+        "https://raw.githubusercontent.com/yumemiru28000/yumemirusougenn/main/kichi.png"
+      ],
+      clickSoundUrl: "https://raw.githubusercontent.com/yumemiru28000/yumemirusougenn/main/click.mp3",
+      // デフォルトは false。必要ならここで常に管理者にすることも可能。
+      isAdmin: false,
+      startDate: null
+    };
+    // ----------------- /設定 -----------------
+
+    // startDate 自動計算（現在時刻より次に来る 1/1 0:00）
+    (function computeStartDate(){
+      const now = new Date();
+      const year = now.getFullYear();
+      const candidate = new Date(year, 0, 1, 0, 0, 0);
+      if (now < candidate) CONFIG.startDate = candidate;
+      else CONFIG.startDate = new Date(year + 1, 0, 1, 0, 0, 0);
+    })();
+
+    // localStorage key for admin
+    const ADMIN_KEY = 'ema_isAdmin_v1';
+
+    function isAdminUser(){
+      return CONFIG.isAdmin || localStorage.getItem(ADMIN_KEY) === '1';
+    }
+
+    // --- Firebase init ---
+    const app = initializeApp(CONFIG.firebaseConfig);
+    const db = getFirestore(app);
+    const storage = getStorage(app);
+
+    // DOM
+    const qs = s => document.querySelector(s);
+    const qsa = s => document.querySelectorAll(s);
+    const btnDraw = qs('#btn-draw');
+    const btnGallery = qs('#btn-gallery');
+    const btnOmikuji = qs('#btn-omikuji');
+    const backFromDraw = qs('#back-from-draw');
+    const backFromGallery = qs('#back-from-gallery');
+    const backFromOmikuji = qs('#back-from-omikuji');
+    const noticeInput = qs('#notice-input');
+    const toolPen = qs('#tool-pen');
+    const toolEraser = qs('#tool-eraser');
+    const sizeRange = qs('#size-range');
+    const clearBtn = qs('#clear-canvas');
+    const saveBtn = qs('#save-ema');
+    const canvas = qs('#ema-canvas');
+    const ctx = canvas.getContext('2d');
+    const galleryRow = qs('#gallery-row');
+    const playOmikujiBtn = qs('#play-omikuji');
+    const omikujiVideo = qs('#omikuji-video');
+    const omikujiResult = qs('#omikuji-result');
+    const clickAudio = CONFIG.clickSoundUrl ? new Audio(CONFIG.clickSoundUrl) : null;
+
+    // admin modal elements
+    const adminOpenBtn = qs('#admin-open-btn');
+    const adminModal = qs('#admin-modal');
+    const adminCancel = qs('#admin-cancel');
+    const adminLoginBtn = qs('#admin-login');
+    const adminPass = qs('#admin-pass');
+    const adminLogged = qs('#admin-logged');
+    const adminNotLogged = qs('#admin-not-logged');
+    const adminLogout = qs('#admin-logout');
+    const adminClose = qs('#admin-close');
+    const adminBadge = qs('#admin-badge');
+
+    // availability
+    function isAvailable(){
+      const now = new Date();
+      return now >= CONFIG.startDate;
+    }
+    function showUnavailableAlert(){
+      alert(`現在使用不可です（${CONFIG.startDate.toLocaleString()} から使用できます）`);
+    }
+
+    function showScreen(id){
+      qsa('.screen').forEach(s => s.classList.remove('active'));
+      qs('#' + id).classList.add('active');
+      window.scrollTo({top:0, behavior:'smooth'});
+    }
+
+    // buttons with availability (admins bypass)
+    [btnDraw, btnGallery, btnOmikuji].forEach(btn=>{
+      btn.addEventListener('click', async (e)=>{
+        if (clickAudio) clickAudio.play().catch(()=>{});
+        if (!isAvailable() && !isAdminUser()){
+          showUnavailableAlert();
+          return;
+        }
+        if (btn.id === 'btn-draw') showScreen('draw');
+        if (btn.id === 'btn-gallery') showScreen('gallery');
+        if (btn.id === 'btn-omikuji') showScreen('omikuji');
+      });
+    });
+
+    backFromDraw.addEventListener('click', ()=>{ showScreen('home'); });
+    backFromGallery.addEventListener('click', ()=>{ showScreen('home'); });
+    backFromOmikuji.addEventListener('click', ()=>{ showScreen('home'); });
+
+    // ========== Canvas / Drawing ==========
+    let drawing = false;
+    let tool = 'pen';
+    let penSize = parseInt(sizeRange.value,10) || 6;
+    let emaImage = new Image();
+
+    function resizeCanvasToDisplaySize(){
+      const logicalW = 1640;
+      const logicalH = 1040;
+      canvas.width = logicalW;
+      canvas.height = logicalH;
+      canvas.style.width = Math.min(window.innerWidth - 40, 820) + 'px';
+      canvas.style.height = (canvas.height / canvas.width) * parseFloat(canvas.style.width) + 'px';
+    }
+    resizeCanvasToDisplaySize();
+    window.addEventListener('resize', ()=> resizeCanvasToDisplaySize());
+
+    emaImage.crossOrigin = "anonymous";
+    emaImage.src = CONFIG.emaBackgroundUrl;
+    emaImage.onload = () => { redrawAll(); };
+
+    function redrawAll(){
+      ctx.clearRect(0,0, canvas.width, canvas.height);
+      // background may fail if image not loaded
+      try { ctx.drawImage(emaImage, 0, 0, canvas.width, canvas.height); } catch(e){}
+      const notice = noticeInput.value || '';
+      if (notice){
+        ctx.save();
+        ctx.fillStyle = "rgba(0,0,0,0.9)";
+        const fontSize = Math.floor(canvas.width / 28);
+        ctx.font = `bold ${fontSize}px "Hiragino Kaku Gothic ProN", "Noto Sans JP", sans-serif`;
+        ctx.textAlign = "center";
+        ctx.fillText(notice, canvas.width/2, fontSize + 14);
+        ctx.restore();
+      }
+    }
+
+    noticeInput.addEventListener('input', ()=>{ redrawAll(); });
+
+    function pointerDown(e){
+      drawing = true;
+      ctx.beginPath();
+      const p = getPointerPos(e);
+      ctx.lineWidth = penSize;
+      ctx.lineCap = "round";
+      ctx.lineJoin = "round";
+      if (tool === 'eraser'){
+        ctx.globalCompositeOperation = 'destination-out';
+      } else {
+        ctx.globalCompositeOperation = 'source-over';
+        ctx.strokeStyle = '#000';
+      }
+      ctx.moveTo(p.x, p.y);
+    }
+    function pointerMove(e){
+      if (!drawing) return;
+      const p = getPointerPos(e);
+      ctx.lineTo(p.x, p.y);
+      ctx.stroke();
+    }
+    function pointerUp(e){
+      drawing = false;
+      ctx.closePath();
+    }
+
+    function getPointerPos(e){
+      const rect = canvas.getBoundingClientRect();
+      const clientX = (e.clientX !== undefined) ? e.clientX : (e.touches && e.touches[0].clientX);
+      const clientY = (e.clientY !== undefined) ? e.clientY : (e.touches && e.touches[0].clientY);
+      const x = (clientX - rect.left) * (canvas.width / rect.width);
+      const y = (clientY - rect.top) * (canvas.height / rect.height);
+      return {x,y};
+    }
+
+    canvas.addEventListener('pointerdown', pointerDown);
+    canvas.addEventListener('pointermove', pointerMove);
+    canvas.addEventListener('pointerup', pointerUp);
+    canvas.addEventListener('pointerout', pointerUp);
+    canvas.addEventListener('pointercancel', pointerUp);
+
+    toolPen.addEventListener('click', ()=>{
+      tool = 'pen';
+      toolPen.classList.add('active'); toolEraser.classList.remove('active');
+    });
+    toolEraser.addEventListener('click', ()=>{
+      tool = 'eraser';
+      toolEraser.classList.add('active'); toolPen.classList.remove('active');
+    });
+    sizeRange.addEventListener('input', (e)=>{ penSize = parseInt(e.target.value,10); });
+    clearBtn.addEventListener('click', ()=>{ redrawAll(); });
+
+    // 保存処理
+    saveBtn.addEventListener('click', async ()=>{
+      if (clickAudio) clickAudio.play().catch(()=>{});
+      if (!isAvailable() && !isAdminUser()){ showUnavailableAlert(); return; }
+
+      saveBtn.disabled = true;
+      saveBtn.textContent = '保存中...';
+
+      try {
+        const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+        const timestamp = Date.now();
+        const filename = `ema_${timestamp}.png`;
+        const sRef = storageRef(storage, `emas/${filename}`);
+        await uploadBytes(sRef, blob);
+        const url = await getDownloadURL(sRef);
+        await addDoc(collection(db, 'emas'), {
+          url,
+          filename,
+          createdAt: serverTimestamp()
+        });
+        alert('保存しました！ホームに戻ります。');
+        showScreen('home');
+      } catch (err){
+        console.error(err);
+        alert('保存に失敗しました。コンソールを確認してください。');
+      } finally {
+        saveBtn.disabled = false;
+        saveBtn.textContent = '保存';
+      }
+    });
+
+    // ========== Gallery ==========
+    async function fetchGalleryOnce(){
+      const q = query(collection(db, 'emas'), orderBy('createdAt','desc'));
+      const snap = await getDocs(q);
+      const items = [];
+      snap.forEach(d => items.push({ id: d.id, ...d.data() }));
+      renderGallery(items);
+    }
+
+    function listenGallery(){
+      const q = query(collection(db, 'emas'), orderBy('createdAt','desc'));
+      return onSnapshot(q, snap => {
+        const items = [];
+        snap.forEach(doc => items.push({ id: doc.id, ...doc.data() }));
+        renderGallery(items);
+      });
+    }
+
+    function renderGallery(items){
+      galleryRow.innerHTML = '';
+      items.forEach(item => {
+        const div = document.createElement('div');
+        div.className = 'gallery-item';
+        const img = document.createElement('img');
+        img.src = item.url;
+        img.alt = '絵馬';
+        img.loading = 'lazy';
+        div.appendChild(img);
+
+        const meta = document.createElement('div');
+        meta.className = 'meta';
+        const time = document.createElement('small');
+        if (item.createdAt && item.createdAt.seconds) time.textContent = new Date(item.createdAt.seconds *1000).toLocaleString();
+        meta.appendChild(time);
+
+        if (isAdminUser()){
+          const del = document.createElement('button');
+          del.textContent = '削除';
+          del.onclick = async ()=>{
+            if (!confirm('本当に削除しますか？')) return;
+            try {
+              const sRef = storageRef(storage, `emas/${item.filename}`);
+              await deleteObject(sRef);
+            } catch(e){
+              console.warn('storage delete failed', e);
+            }
+            try {
+              await deleteDoc(doc(db, 'emas', item.id));
+              alert('削除しました');
+            } catch(e){
+              console.error(e);
+              alert('削除に失敗しました');
+            }
+          };
+          meta.appendChild(del);
+        }
+
+        div.appendChild(meta);
+        galleryRow.appendChild(div);
+      });
+    }
+
+    qs('#btn-gallery').addEventListener('click', ()=>{
+      if (!isAvailable() && !isAdminUser()) return;
+      fetchGalleryOnce();
+      if (window._galleryUnsub) window._galleryUnsub();
+      window._galleryUnsub = listenGallery();
+    });
+
+    backFromGallery.addEventListener('click', ()=>{
+      if (window._galleryUnsub) { window._galleryUnsub(); window._galleryUnsub = null; }
+    });
+
+    // ========== Omikuji ==========
+    omikujiVideo.src = CONFIG.omikujiMediaUrl;
+    omikujiVideo.crossOrigin = 'anonymous';
+
+    playOmikujiBtn.addEventListener('click', ()=>{
+      if (clickAudio) clickAudio.play().catch(()=>{});
+      if (!isAvailable() && !isAdminUser()) { showUnavailableAlert(); return; }
+
+      omikujiResult.style.display = 'none';
+      omikujiVideo.style.display = 'block';
+      omikujiVideo.currentTime = 0;
+      omikujiVideo.play().catch(()=>{});
+
+      const onEnd = ()=>{
+        omikujiVideo.style.display = 'none';
+        const arr = CONFIG.omikujiResultImages;
+        if (!arr || arr.length === 0){
+          alert('おみくじ画像が設定されていません。CONFIG.omikujiResultImages を編集してください。');
+          return;
+        }
+        const pick = arr[Math.floor(Math.random() * arr.length)];
+        omikujiResult.src = pick;
+        omikujiResult.style.display = 'block';
+        omikujiVideo.removeEventListener('ended', onEnd);
+      };
+      omikujiVideo.addEventListener('ended', onEnd);
+    });
+
+    // ========== Admin UI ロジック ==========
+    function updateAdminUI(){
+      if (isAdminUser()){
+        adminBadge.classList.add('visible');
+        adminNotLogged.style.display = 'none';
+        adminLogged.style.display = 'block';
+        // enable buttons visually
+        [btnDraw, btnGallery, btnOmikuji].forEach(b => b.classList.remove('disabled'));
+      } else {
+        adminBadge.classList.remove('visible');
+        adminNotLogged.style.display = 'block';
+        adminLogged.style.display = 'none';
+        // if before start date, disable visually
+        if (!isAvailable()){
+          [btnDraw, btnGallery, btnOmikuji].forEach(b => b.classList.add('disabled'));
+        }
+      }
+    }
+
+    adminOpenBtn.addEventListener('click', ()=>{
+      // open modal
+      adminModal.style.display = 'flex';
+      adminModal.setAttribute('aria-hidden','false');
+      // set view based on login
+      updateAdminUI();
+    });
+    adminCancel.addEventListener('click', ()=>{
+      adminModal.style.display = 'none';
+      adminModal.setAttribute('aria-hidden','true');
+      adminPass.value = '';
+    });
+
+    adminLoginBtn.addEventListener('click', ()=>{
+      const pass = adminPass.value || '';
+      // パスワードは固定: 1122
+      if (pass === '1122'){
+        localStorage.setItem(ADMIN_KEY, '1');
+        alert('管理者としてログインしました（このブラウザで常時有効）');
+        adminPass.value = '';
+        updateAdminUI();
+      } else {
+        alert('パスワードが違います');
+      }
+    });
+
+    adminLogout.addEventListener('click', ()=>{
+      if (!confirm('ログアウトしますか？このブラウザでの管理権限を削除します。')) return;
+      localStorage.removeItem(ADMIN_KEY);
+      alert('ログアウトしました');
+      updateAdminUI();
+    });
+
+    adminClose.addEventListener('click', ()=>{
+      adminModal.style.display = 'none';
+      adminModal.setAttribute('aria-hidden','true');
+    });
+
+    // close modal when clicking background
+    adminModal.addEventListener('click', (e)=>{
+      if (e.target === adminModal){
+        adminModal.style.display = 'none';
+        adminModal.setAttribute('aria-hidden','true');
+      }
+    });
+
+    // ========== 初期化 ==========
+    function init(){
+      redrawAll();
+      updateAdminUI();
+      // show disabled if not available and not admin
+      if (!isAvailable() && !isAdminUser()){
+        [btnDraw, btnGallery, btnOmikuji].forEach(b=> b.classList.add('disabled'));
+      }
+    }
+    init();
+
+    // make CONFIG accessible for debugging
+    window._EMA_APP = { CONFIG, db, storage, isAdminUser };
+  </script>
+</body>
+</html>
