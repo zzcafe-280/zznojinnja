@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>初詣 ずずノ神社</title>
+  <title>初詣 ずずノ神社（ベクタ絵馬：色つきペン＋透明消しゴム）</title>
   <style>
     :root{
       --bg:#fffaf2;
@@ -19,12 +19,7 @@
       color:var(--text);
       padding-bottom:120px;
     }
-    .header{
-      text-align:center;
-      padding:20px 10px 0 10px;
-      background-image: linear-gradient(90deg, rgba(178,34,34,0.07), rgba(255,160,122,0.03));
-      border-bottom: 1px solid #ffe7e0;
-    }
+    .header{ text-align:center; padding:20px 10px 0 10px; background-image: linear-gradient(90deg, rgba(178,34,34,0.07), rgba(255,160,122,0.03)); border-bottom: 1px solid #ffe7e0; }
     .header h1{margin:0; color:var(--accent); font-size:1.8rem;}
     .subtitle{margin:6px 0 12px 0; color:#6b6b6b}
     .screen{display:none; padding:18px; max-width:1100px; margin:0 auto;}
@@ -36,26 +31,25 @@
     .tool{padding:8px 10px; border-radius:8px; border:1px solid #ddd; background:white; cursor:pointer}
     .tool.active{border-color:var(--accent); box-shadow:0 2px 0 rgba(178,34,34,0.1)}
     .canvas-wrap{display:flex; justify-content:center; padding:8px; position:relative}
-    /* two layered canvases: background + stroke layer */
     .ema-layer{position:absolute; left:0; top:0; width:100%; height:100%}
-    #bg-canvas, #strokes-canvas { border-radius:8px; box-shadow:0 6px 24px rgba(0,0,0,0.08); background:var(--paper); touch-action:none }
+    #bg-canvas, #strokes-canvas { border-radius:8px; box-shadow:0 6px 24px rgba(0,0,0,0.08); background:var(--paper); touch-action:none; display:block; }
+    .palette{display:flex; gap:6px; align-items:center; padding-left:8px}
+    .swatch{width:28px; height:28px; border-radius:6px; border:2px solid rgba(255,255,255,0.6); box-shadow:0 1px 0 rgba(0,0,0,0.06); cursor:pointer}
+    .swatch.selected{outline:3px solid rgba(0,0,0,0.12)}
+    .size-indicator{font-size:13px; color:#444; margin-left:8px}
     .actions{display:flex; justify-content:center; gap:12px; margin-top:12px}
     .primary{background:var(--accent); color:white; border:none; padding:10px 16px; border-radius:8px; cursor:pointer}
     .secondary{background:#fff; border:1px solid #ddd; padding:10px 16px; border-radius:8px; cursor:pointer}
     .gallery-row{display:flex; gap:12px; overflow-x:auto; padding:12px 8px; align-items:flex-start}
     .gallery-item{min-width:240px; border-radius:8px; background:white; padding:6px; box-shadow:0 4px 10px rgba(0,0,0,0.06)}
-    .gallery-item canvas{display:block; width:100%; border-radius:6px}
+    .gallery-item canvas{display:block; width:100%; height:auto; border-radius:6px}
     .meta{display:flex; justify-content:space-between; align-items:center; margin-top:6px}
     .omikuji-area{display:flex; justify-content:center; align-items:center; min-height:320px; gap:12px; flex-direction:column}
     .footer{position:fixed; left:18px; bottom:8px; color:#7a7a7a}
-    .admin-open-btn{
-      position:fixed; left:18px; bottom:18px; background:rgba(0,0,0,0.06); border-radius:8px; padding:8px 10px; cursor:pointer; font-size:12px; border:1px solid rgba(0,0,0,0.06)
-    }
+    .admin-open-btn{ position:fixed; left:18px; bottom:18px; background:rgba(0,0,0,0.06); border-radius:8px; padding:8px 10px; cursor:pointer; font-size:12px; border:1px solid rgba(0,0,0,0.06) }
     .admin-badge{position:fixed; right:18px; bottom:18px; background:var(--accent); color:white; padding:6px 8px; border-radius:8px; font-size:12px; display:none}
     .admin-badge.visible{display:block}
-    .admin-modal{
-      position:fixed; left:0; top:0; right:0; bottom:0; display:flex; align-items:center; justify-content:center; background:rgba(0,0,0,0.35);
-    }
+    .admin-modal{ position:fixed; left:0; top:0; right:0; bottom:0; display:flex; align-items:center; justify-content:center; background:rgba(0,0,0,0.35); }
     .admin-box{background:white; padding:18px; border-radius:10px; width:320px; box-shadow:0 10px 30px rgba(0,0,0,0.2)}
     .admin-box input{width:100%; padding:8px; margin-top:8px; margin-bottom:12px; box-sizing:border-box}
     @media(max-width:880px){
@@ -68,14 +62,14 @@
   <div id="app">
     <header class="header">
       <h1>初詣 ずずノ神社</h1>
-      <p class="subtitle"></p>
+      <p class="subtitle">いつでもご利用できます — 色つきペンと透明消しゴム</p>
     </header>
 
     <main>
       <section id="home" class="screen active">
         <div class="buttons">
           <button id="btn-draw" class="big">絵馬を描く</button>
-          <button id="btn-gallery" class="big">今年の絵馬を見る</button>
+          <button id="btn-gallery" class="big">絵馬を見る</button>
           <button id="btn-omikuji" class="big">おみくじを引く</button>
         </div>
       </section>
@@ -86,8 +80,7 @@
           <div class="tool-controls">
             <button id="tool-pen" class="tool active">ペン</button>
             <button id="tool-eraser" class="tool">消しゴム</button>
-            <label style="display:flex;align-items:center;gap:6px">太さ <input id="size-range" type="range" min="1" max="40" value="6" /></label>
-            <button id="clear-canvas" class="tool">クリア</button>
+            <label style="display:flex;align-items:center;gap:6px">太さ <input id="size-range" type="range" min="1" max="80" value="6" /></label>
           </div>
         </div>
 
@@ -96,6 +89,11 @@
           <canvas id="bg-canvas" class="ema-layer"></canvas>
           <!-- 描画用キャンバス（上） -->
           <canvas id="strokes-canvas" class="ema-layer"></canvas>
+        </div>
+
+        <div style="display:flex; justify-content:center; gap:14px; margin-top:10px; align-items:center;">
+          <div class="palette" id="palette"></div>
+          <div class="size-indicator">サイズ: <span id="size-val">6</span> px</div>
         </div>
 
         <div class="actions">
@@ -127,7 +125,7 @@
     </main>
 
     <footer class="footer">
-      <small>神社風デザイン — 描画はベクタ（数値）で保存します。Storage / CORS を使いません。</small>
+      <small>描画はベクタ（normalized 座標）で Firestore に保存します。背景は raw.github の絵馬画像を表示します。</small>
     </footer>
 
     <div id="admin-open-btn" class="admin-open-btn">管理</div>
@@ -160,12 +158,6 @@
   </div>
 
   <script type="module">
-    /* =========================================================
-       ベクタ方式：描画（黒ペン＆消しゴム）のデータを
-       Firestore に数値（正規化された座標）で保存します。
-       Storage / CORS を使わない仕様です。
-       ========================================================= */
-
     // Firebase v12 modular
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
     import {
@@ -181,58 +173,51 @@
       deleteDoc
     } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
 
-    // ------------- 設定（あなたの Firebase 設定に置き換えてください） -------------
+    // ---------- 設定 ----------
     const CONFIG = {
       firebaseConfig: {
         apiKey: "AIzaSyDnkGy9oon2bHsp5dHDR0UozhSZdV0mDnw",
         authDomain: "zuzunojinnja.firebaseapp.com",
         projectId: "zuzunojinnja",
-        // storageBucket は今回は不要（Storage を使わない実装）
         storageBucket: "zuzunojinnja.appspot.com",
         messagingSenderId: "1064706171598",
         appId: "1:1064706171598:web:04b302be4b50daf551a69f",
         measurementId: "G-6V3Z0R03VY"
       },
-
-      // 絵馬背景画像（raw.githubusercontent 等にアップロードした画像URL）
+      // 背景画像（必ず raw.githubusercontent 等でホスト）
       emaBackgroundUrl: "https://raw.githubusercontent.com/zzcafe-280/zznojinnja/main/ema.png",
-
-      // おみくじのメディアと結果画像（任意）
       omikujiMediaUrl: "https://raw.githubusercontent.com/zzcafe-280/zznojinnja/main/omikuji.mp4",
       omikujiResultImages: [
-        "https://raw.githubusercontent.com/zzcafe-280/zznojinnja/main/daikichi1.png",
-        "https://raw.githubusercontent.com/zzcafe-280/zznojinnja/main/daikichi2.png",
-        "https://raw.githubusercontent.com/zzcafe-280/zznojinnja/main/daikichi3.png",
-        "https://raw.githubusercontent.com/zzcafe-280/zznojinnja/main/suekichi1.png",
-        "https://raw.githubusercontent.com/zzcafe-280/zznojinnja/main/suekichi2.png",
-        "https://raw.githubusercontent.com/zzcafe-280/zznojinnja/main/suekichi3.png",
-        "https://raw.githubusercontent.com/zzcafe-280/zznojinnja/main/tyukichi1.png",
-        "https://raw.githubusercontent.com/zzcafe-280/zznojinnja/main/tyukichi2.png",
-        "https://raw.githubusercontent.com/zzcafe-280/zznojinnja/main/tyukichi3.png",
-        "https://raw.githubusercontent.com/zzcafe-280/zznojinnja/main/kichi1.png",
-        "https://raw.githubusercontent.com/zzcafe-280/zznojinnja/main/kichi2.png",
-        "https://raw.githubusercontent.com/zzcafe-280/zznojinnja/main/kichi3.png",
-        "https://raw.githubusercontent.com/zzcafe-280/zznojinnja/main/syoukichi1.png",
-        "https://raw.githubusercontent.com/zzcafe-280/zznojinnja/main/syoukichi2.png",
-        "https://raw.githubusercontent.com/zzcafe-280/zznojinnja/main/syoukichi3.png",
-        "https://raw.githubusercontent.com/zzcafe-280/zznojinnja/main/kyou1.png",
-        "https://raw.githubusercontent.com/zzcafe-280/zznojinnja/main/kyou2.png",
-        "https://raw.githubusercontent.com/zzcafe-280/zznojinnja/main/kyou3.png"
+       "https://raw.githubusercontent.com/yumemiru28000/yumemirusougenn/main/daikichi1.png",
+        "https://raw.githubusercontent.com/yumemiru28000/yumemirusougenn/main/daikichi2.png",
+        "https://raw.githubusercontent.com/yumemiru28000/yumemirusougenn/main/daikichi3.png",
+                "https://raw.githubusercontent.com/yumemiru28000/yumemirusougenn/main/suekichi1.png",
+                "https://raw.githubusercontent.com/yumemiru28000/yumemirusougenn/main/suekichi2.png",
+                "https://raw.githubusercontent.com/yumemiru28000/yumemirusougenn/main/suekichi3.png",
+                "https://raw.githubusercontent.com/yumemiru28000/yumemirusougenn/main/tyuukichi1.png",
+                "https://raw.githubusercontent.com/yumemiru28000/yumemirusougenn/main/tyuukichi2.png",
+                "https://raw.githubusercontent.com/yumemiru28000/yumemirusougenn/main/tyuukichi3.png",
+                "https://raw.githubusercontent.com/yumemiru28000/yumemirusougenn/main/kichi1.png",
+                "https://raw.githubusercontent.com/yumemiru28000/yumemirusougenn/main/kichi2.png",
+                "https://raw.githubusercontent.com/yumemiru28000/yumemirusougenn/main/kichi3.png",
+                "https://raw.githubusercontent.com/yumemiru28000/yumemirusougenn/main/syoukichi1.png",
+                "https://raw.githubusercontent.com/yumemiru28000/yumemirusougenn/main/syoukichi2.png",
+                "https://raw.githubusercontent.com/yumemiru28000/yumemirusougenn/main/syoukichi3.png",
+                "https://raw.githubusercontent.com/yumemiru28000/yumemirusougenn/main/kyou1.png",
+                "https://raw.githubusercontent.com/yumemiru28000/yumemirusougenn/main/kyou2.png",
+                "https://raw.githubusercontent.com/yumemiru28000/yumemirusougenn/main/kyou3.png"
       ],
-
       clickSoundUrl: "https://raw.githubusercontent.com/zzcafe-280/zznojinnja/main/click.mp3"
     };
-    // ------------- /設定 ----------------------------------------------------------------
+    // ---------- /設定 ----------
 
-    // Firebase 初期化
     const app = initializeApp(CONFIG.firebaseConfig);
     const db = getFirestore(app);
 
-    // DOM helpers
+    // DOM
     const qs = s => document.querySelector(s);
     const qsa = s => document.querySelectorAll(s);
 
-    // elements
     const btnDraw = qs('#btn-draw');
     const btnGallery = qs('#btn-gallery');
     const btnOmikuji = qs('#btn-omikuji');
@@ -244,6 +229,7 @@
     const toolPen = qs('#tool-pen');
     const toolEraser = qs('#tool-eraser');
     const sizeRange = qs('#size-range');
+    const sizeVal = qs('#size-val');
     const clearBtn = qs('#clear-canvas');
     const saveBtn = qs('#save-ema');
 
@@ -273,45 +259,37 @@
     const adminBadge = qs('#admin-badge');
     function isAdminUser(){ return localStorage.getItem(ADMIN_KEY) === '1'; }
 
-    // canvas contexts
+    // contexts
     const bgCtx = bgCanvas.getContext('2d');
     const sCtx = strokesCanvas.getContext('2d');
 
-    // logical canvas size (保存時の基準サイズ) - fixed to keep normalized coordinates consistent
+    // logical canvas size (fixed base)
     const LOGICAL_W = 1640;
     const LOGICAL_H = 1040;
 
     function resizeLayerCanvases(){
-      // set logical size
       bgCanvas.width = LOGICAL_W; bgCanvas.height = LOGICAL_H;
       strokesCanvas.width = LOGICAL_W; strokesCanvas.height = LOGICAL_H;
-      // size CSS to fit wrapper
       const maxWidth = Math.min(window.innerWidth - 40, 820);
       const cssH = (LOGICAL_H / LOGICAL_W) * maxWidth;
-      bgCanvas.style.width = `${maxWidth}px`;
-      bgCanvas.style.height = `${cssH}px`;
-      strokesCanvas.style.width = `${maxWidth}px`;
-      strokesCanvas.style.height = `${cssH}px`;
-      // position canvases to fill wrap
-      bgCanvas.style.left = bgCanvas.style.top = '0';
-      strokesCanvas.style.left = strokesCanvas.style.top = '0';
+      bgCanvas.style.width = `${maxWidth}px`; bgCanvas.style.height = `${cssH}px`;
+      strokesCanvas.style.width = `${maxWidth}px`; strokesCanvas.style.height = `${cssH}px`;
     }
     resizeLayerCanvases();
     window.addEventListener('resize', resizeLayerCanvases);
 
-    // load background image
+    // load background image and draw on bg canvas
     const emaImage = new Image();
     emaImage.crossOrigin = "anonymous";
     emaImage.src = CONFIG.emaBackgroundUrl;
     emaImage.onload = () => {
       drawBackground();
-      redrawStrokes(); // nothing initially
+      redrawStrokes();
     };
+
     function drawBackground(){
-      // draw scaled to fit logical canvas (we assume emaImage sized to aspect or stretch to fit)
       bgCtx.clearRect(0,0,LOGICAL_W,LOGICAL_H);
-      bgCtx.drawImage(emaImage, 0, 0, LOGICAL_W, LOGICAL_H);
-      // if notice exists, draw small text near top center on background layer
+      try { bgCtx.drawImage(emaImage, 0, 0, LOGICAL_W, LOGICAL_H); } catch(e){ bgCtx.fillStyle='#fff'; bgCtx.fillRect(0,0,LOGICAL_W,LOGICAL_H); }
       const notice = noticeInput.value || '';
       if (notice){
         bgCtx.save();
@@ -325,25 +303,56 @@
     }
     noticeInput.addEventListener('input', drawBackground);
 
-    // strokes data (array of stroke objects) - accumulated during drawing before save
-    // stroke: { type: 'pen'|'eraser', color:'#000', widthNorm:  (0..1 relative to LOGICAL_W), points: [{x:0..1, y:0..1}, ...] }
+    // strokes data format:
+    // { type: 'pen'|'eraser', color: '#rrggbb', widthNorm: number, points: [ {x:0..1, y:0..1}, ... ] }
     let strokes = [];
-
-    // drawing state
     let drawing = false;
     let currentStroke = null;
     let tool = 'pen';
     let penSize = parseInt(sizeRange.value,10) || 6;
+    sizeVal.textContent = penSize;
 
-    // pointer handling on top canvas; capture normalized points (0..1)
+    // color palette (order user requested)
+    const PALETTE = [
+      {name:'桃色', color:'#ffb6c1'},
+      {name:'赤',   color:'#ff3b30'},
+      {name:'橙',   color:'#ff9500'},
+      {name:'黄',   color:'#ffd60a'},
+      {name:'緑',   color:'#34c759'},
+      {name:'青',   color:'#0a84ff'},
+      {name:'紫',   color:'#af52de'},
+      {name:'茶',   color:'#8b5a2b'},
+      {name:'黒',   color:'#000000'}
+    ];
+    let currentColor = '#000000';
+
+    // create palette UI
+    const paletteEl = qs('#palette');
+    PALETTE.forEach((p, idx) => {
+      const sw = document.createElement('div');
+      sw.className = 'swatch';
+      sw.title = p.name;
+      sw.style.background = p.color;
+      sw.dataset.color = p.color;
+      if (p.color === currentColor) sw.classList.add('selected');
+      sw.addEventListener('click', ()=>{
+        currentColor = p.color;
+        qsa('.swatch').forEach(s=>s.classList.remove('selected'));
+        sw.classList.add('selected');
+        // set tool to pen when selecting color
+        tool = 'pen';
+        toolPen.classList.add('active'); toolEraser.classList.remove('active');
+      });
+      paletteEl.appendChild(sw);
+    });
+
+    // pointer normalization
     function getPointerInLogical(e){
       const rect = strokesCanvas.getBoundingClientRect();
       const clientX = (e.clientX !== undefined) ? e.clientX : (e.touches && e.touches[0].clientX);
       const clientY = (e.clientY !== undefined) ? e.clientY : (e.touches && e.touches[0].clientY);
-      // compute coordinate relative to canvas display size then map to logical
       const xRatio = (clientX - rect.left) / rect.width;
       const yRatio = (clientY - rect.top) / rect.height;
-      // clamp
       const x = Math.max(0, Math.min(1, xRatio));
       const y = Math.max(0, Math.min(1, yRatio));
       return { x, y, lx: x * LOGICAL_W, ly: y * LOGICAL_H };
@@ -352,10 +361,10 @@
     function beginStroke(e){
       drawing = true;
       const p = getPointerInLogical(e);
-      const widthNorm = penSize / LOGICAL_W; // normalized
+      const widthNorm = penSize / LOGICAL_W;
       currentStroke = {
         type: tool === 'eraser' ? 'eraser' : 'pen',
-        color: '#000',
+        color: currentColor,
         widthNorm,
         points: [{x: p.x, y: p.y}]
       };
@@ -363,9 +372,8 @@
     function moveStroke(e){
       if (!drawing || !currentStroke) return;
       const p = getPointerInLogical(e);
-      // sample (append)
+      // sample points - simple approach
       currentStroke.points.push({x: p.x, y: p.y});
-      // re-render strokes layer for immediate feedback
       redrawStrokes();
     }
     function endStroke(e){
@@ -384,35 +392,38 @@
     strokesCanvas.addEventListener('pointerout', endStroke);
     strokesCanvas.addEventListener('pointercancel', endStroke);
 
-    // tool buttons
+    // tools
     toolPen.addEventListener('click', ()=>{
       tool = 'pen'; toolPen.classList.add('active'); toolEraser.classList.remove('active');
     });
     toolEraser.addEventListener('click', ()=>{
       tool = 'eraser'; toolEraser.classList.add('active'); toolPen.classList.remove('active');
     });
-    sizeRange.addEventListener('input', (e)=>{ penSize = parseInt(e.target.value,10); });
+    sizeRange.addEventListener('input', (e)=>{
+      penSize = parseInt(e.target.value,10);
+      sizeVal.textContent = penSize;
+    });
 
     clearBtn.addEventListener('click', ()=>{
-      if (!confirm('キャンバス上の描画をすべて消しますか？（背景は残る）')) return;
+      if (!confirm('描いた線をすべて消しますか？（背景はそのまま）')) return;
       strokes = [];
       redrawStrokes();
     });
 
-    // redraw strokes layer: clear strokes canvas, draw strokes in order.
+    // redraw strokes on strokesCanvas (replay saved strokes + current)
     function redrawStrokes(){
-      // clear stroke canvas
       sCtx.clearRect(0,0,LOGICAL_W,LOGICAL_H);
-      // draw all saved strokes
-      for (const st of strokes.concat(currentStroke ? [currentStroke] : [])){
+      const all = strokes.concat(currentStroke ? [currentStroke] : []);
+      for (const st of all){
         if (!st) continue;
         if (st.type === 'pen'){
           sCtx.globalCompositeOperation = 'source-over';
           sCtx.strokeStyle = st.color || '#000';
-        } else if (st.type === 'eraser'){
-          // erase only on stroke layer: destination-out removes stroke-layer pixels
+        } else {
+          // transparent eraser: destination-out will remove pixels on stroke layer,
+          // showing background canvas through. This makes the erased area transparent.
           sCtx.globalCompositeOperation = 'destination-out';
-          sCtx.strokeStyle = 'rgba(0,0,0,1)'; // color ignored for destination-out
+          sCtx.strokeStyle = 'rgba(0,0,0,1)';
         }
         sCtx.lineWidth = (st.widthNorm || 0.004) * LOGICAL_W;
         sCtx.lineJoin = 'round';
@@ -427,27 +438,23 @@
         }
         sCtx.stroke();
       }
-      // reset composite
       sCtx.globalCompositeOperation = 'source-over';
     }
 
-    // When saving to Firestore, we store strokes (normalized coordinates) + notice + createdAt
+    // save strokes (normalized coords) to Firestore
     saveBtn.addEventListener('click', async ()=>{
       if (clickAudio) clickAudio.play().catch(()=>{});
-      if (strokes.length === 0){
-        if (!confirm('何も描画されていません。保存してもよいですか？')) return;
-      }
       saveBtn.disabled = true;
       saveBtn.textContent = '保存中...';
-
       try {
-        // prepare payload - small compression: round floats to 4 decimals to reduce size
-        const compressPoints = pts => pts.map(p => ({ x: Math.round(p.x*10000)/10000, y: Math.round(p.y*10000)/10000 }));
+        // compress: round to 4 decimals
+        const round = v => Math.round(v*10000)/10000;
+        const compressPoints = pts => pts.map(p => ({ x: round(p.x), y: round(p.y) }));
         const payload = {
           strokes: strokes.map(s => ({
             type: s.type,
             color: s.color,
-            widthNorm: Math.round((s.widthNorm || 0.004) * 100000) / 100000,
+            widthNorm: Math.round((s.widthNorm || 0.004) * 100000)/100000,
             points: compressPoints(s.points)
           })),
           notice: (noticeInput.value || '').slice(0,200),
@@ -455,20 +462,19 @@
         };
         await addDoc(collection(db, 'emas'), payload);
         alert('保存しました！ホームに戻ります。');
-        // clear local strokes for new drawing
         strokes = [];
         redrawStrokes();
         showScreen('home');
       } catch (err){
         console.error('save error', err);
-        alert('保存に失敗しました（コンソール参照）。Firestore の権限設定をご確認ください。');
+        alert('保存に失敗しました。Firestore の権限を確認してください（permission-denied 等）。');
       } finally {
         saveBtn.disabled = false;
         saveBtn.textContent = '保存';
       }
     });
 
-    // ========== Gallery: render each document by replaying strokes on background ==========
+    // render gallery by replaying strokes on background (keeps exact positions via normalized coords)
     async function fetchGalleryOnce(){
       try {
         const q = query(collection(db, 'emas'), orderBy('createdAt','desc'));
@@ -482,35 +488,36 @@
       }
     }
 
-    // create a thumbnail canvas element for each item by replaying background + strokes
+    // draw each item to a canvas (thumbnail) using same normalized mapping,
+    // so positions match what user saw while drawing.
     function renderGallery(items){
       galleryRow.innerHTML = '';
       items.forEach(item => {
         const wrap = document.createElement('div');
         wrap.className = 'gallery-item';
-        // create a small canvas for thumbnail (keep logical drawing but show responsive)
-        const thumbCanvas = document.createElement('canvas');
-        const TH_W = 640; // logical thumbnail width for rendering strokes (quality)
+        // choose thumbnail logical size (keeps quality)
+        const TH_W = 820; // render at same width as drawing area to match positions
         const TH_H = Math.round((LOGICAL_H / LOGICAL_W) * TH_W);
-        thumbCanvas.width = TH_W; thumbCanvas.height = TH_H;
-        const tctx = thumbCanvas.getContext('2d');
-        // draw background scaled
+        const thumb = document.createElement('canvas');
+        thumb.width = TH_W; thumb.height = TH_H;
+        const tctx = thumb.getContext('2d');
+        // draw background scaled to TH
         if (emaImage.complete){
-          try { tctx.drawImage(emaImage, 0, 0, TH_W, TH_H); } catch(e){ tctx.fillStyle = '#fff'; tctx.fillRect(0,0,TH_W,TH_H); }
+          try { tctx.drawImage(emaImage, 0, 0, TH_W, TH_H); } catch(e){ tctx.fillStyle='#fff'; tctx.fillRect(0,0,TH_W,TH_H); }
         } else {
-          tctx.fillStyle = '#fff'; tctx.fillRect(0,0,TH_W,TH_H);
+          tctx.fillStyle='#fff'; tctx.fillRect(0,0,TH_W,TH_H);
         }
-        // draw notice (if stored) on background
+        // draw notice
         if (item.notice){
           tctx.save();
-          tctx.fillStyle = "rgba(0,0,0,0.9)";
+          tctx.fillStyle = "rgba(0,0,0,0.92)";
           const fontSize = Math.floor(TH_W / 28);
           tctx.font = `bold ${fontSize}px sans-serif`;
           tctx.textAlign = "center";
           tctx.fillText(item.notice, TH_W/2, fontSize + 12);
           tctx.restore();
         }
-        // draw strokes by replaying their normalized points scaled to TH_W/TH_H
+        // replay strokes
         if (item.strokes && Array.isArray(item.strokes)){
           for (const st of item.strokes){
             if (st.type === 'pen') tctx.globalCompositeOperation = 'source-over';
@@ -522,8 +529,8 @@
             tctx.beginPath();
             for (let i=0;i<st.points.length;i++){
               const p = st.points[i];
-              const x = p.x * TH_W;
-              const y = p.y * TH_H;
+              const x = (p.x) * TH_W;
+              const y = (p.y) * TH_H;
               if (i===0) tctx.moveTo(x,y);
               else tctx.lineTo(x,y);
             }
@@ -531,15 +538,14 @@
           }
           tctx.globalCompositeOperation = 'source-over';
         }
-        // append canvas and meta
-        wrap.appendChild(thumbCanvas);
+
+        wrap.appendChild(thumb);
         const meta = document.createElement('div');
         meta.className = 'meta';
         const time = document.createElement('small');
         if (item.createdAt && item.createdAt.seconds) time.textContent = new Date(item.createdAt.seconds*1000).toLocaleString();
         meta.appendChild(time);
 
-        // admin delete button
         if (isAdminUser()){
           const del = document.createElement('button');
           del.textContent = '削除';
@@ -548,7 +554,6 @@
             try {
               await deleteDoc(doc(db, 'emas', item.id));
               alert('削除しました');
-              // re-fetch
               fetchGalleryOnce();
             } catch(e){
               console.error('delete failed', e);
@@ -565,10 +570,6 @@
 
     qs('#btn-gallery').addEventListener('click', ()=>{
       fetchGalleryOnce();
-       showScreen('gallery'); // ★ これを追加
-  
-
-      // set live listener (optional)
       if (window._galleryUnsub) window._galleryUnsub();
       const q = query(collection(db, 'emas'), orderBy('createdAt','desc'));
       window._galleryUnsub = onSnapshot(q, snap => {
@@ -584,7 +585,7 @@
       showScreen('home');
     });
 
-    // ========== Omikuji (unchanged simple behavior) ==========
+    // omikuji simple
     omikujiVideo.src = CONFIG.omikujiMediaUrl;
     omikujiVideo.crossOrigin = 'anonymous';
     playOmikujiBtn.addEventListener('click', ()=>{
@@ -597,7 +598,7 @@
         omikujiVideo.style.display = 'none';
         const arr = CONFIG.omikujiResultImages;
         if (!arr || arr.length === 0){
-          alert('おみくじ画像が設定されていません。CONFIG.omikujiResultImages を編集してください。');
+          alert('おみくじ画像が設定されていません。');
           return;
         }
         const pick = arr[Math.floor(Math.random() * arr.length)];
@@ -608,7 +609,7 @@
       omikujiVideo.addEventListener('ended', onEnd);
     });
 
-    // navigation (always available)
+    // navigation
     function showScreen(id){
       qsa('.screen').forEach(s => s.classList.remove('active'));
       qs('#' + id).classList.add('active');
@@ -619,7 +620,7 @@
     backFromDraw.addEventListener('click', ()=> showScreen('home'));
     backFromOmikuji.addEventListener('click', ()=> showScreen('home'));
 
-    // ========== Admin UI (simple local password 1122) ==========
+    // admin UI
     function updateAdminUI(){
       if (isAdminUser()){
         adminBadge.classList.add('visible');
@@ -669,16 +670,17 @@
       }
     });
 
-    // ========== 初期化 ==========
+    // init
     function init(){
+      resizeLayerCanvases();
       drawBackground();
       redrawStrokes();
       updateAdminUI();
     }
     init();
 
-    // expose for debug
-    window._EMA_APP = { CONFIG, db, redrawStrokes, strokes, isAdminUser };
+    // expose debug
+    window._EMA_APP = { CONFIG, db, strokes, redrawStrokes, isAdminUser };
 
   </script>
 </body>
