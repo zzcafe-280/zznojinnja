@@ -565,6 +565,9 @@
 
     qs('#btn-gallery').addEventListener('click', ()=>{
       fetchGalleryOnce();
+       showScreen('gallery'); // ★ これを追加
+  
+
       // set live listener (optional)
       if (window._galleryUnsub) window._galleryUnsub();
       const q = query(collection(db, 'emas'), orderBy('createdAt','desc'));
