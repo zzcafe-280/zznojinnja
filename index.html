@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>初詣 えまサイト（ワンファイル・管理者ボタン付き）</title>
+  <title>初詣 ずずノ神社</title>
   <style>
     :root{
       --bg:#fffaf2;
@@ -53,7 +53,6 @@
     }
     .admin-badge{position:fixed; right:18px; bottom:18px; background:var(--accent); color:white; padding:6px 8px; border-radius:8px; font-size:12px; display:none}
     .admin-badge.visible{display:block}
-    /* admin modal */
     .admin-modal{
       position:fixed; left:0; top:0; right:0; bottom:0; display:flex; align-items:center; justify-content:center; background:rgba(0,0,0,0.35);
     }
@@ -68,7 +67,7 @@
   <div id="app">
     <header class="header">
       <h1>初詣 ずずノ神社</h1>
-      <p class="subtitle">1/1 になったら使えます — 新年を祝おう</p>
+      <p class="subtitle">いつでもご利用できます — 新年もそれ以外の日もOK</p>
     </header>
 
     <main>
@@ -122,7 +121,7 @@
     </main>
 
     <footer class="footer">
-      <small>神社風デザイン — 新年らしい演出をお楽しみください</small>
+      <small>神社風デザイン — お絵描きとおみくじをお楽しみください</small>
     </footer>
 
     <!-- 左下 小さな管理ボタン -->
@@ -158,97 +157,108 @@
   </div>
 
   <script type="module">
-    // --- Firebase SDK (modular) ---
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
-    import { getFirestore, collection, addDoc, query, orderBy, getDocs, onSnapshot, serverTimestamp, doc, deleteDoc } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
-    import { getStorage, ref as storageRef, uploadBytes, getDownloadURL, deleteObject } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-storage.js";
+    // Firebase v12 (browser) modular imports
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
+    import {
+      getFirestore,
+      collection,
+      addDoc,
+      query,
+      orderBy,
+      getDocs,
+      onSnapshot,
+      serverTimestamp,
+      doc,
+      deleteDoc
+    } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
+    import {
+      getStorage,
+      ref as storageRef,
+      uploadBytes,
+      getDownloadURL,
+      deleteObject
+    } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-storage.js";
 
     // ----------------- 設定（必要に応じて編集） -----------------
+    // --- 重要 ---
+    // storageBucket は "<your-project-id>.appspot.com" という形式にしてください
     const CONFIG = {
       firebaseConfig: {
-        apiKey: "AIzaSyCvdaEW4o2y8rljlafXQJbGE-nuGQn9Q88",
-        authDomain: "zuzutomo-d8fa0.firebaseapp.com",
-        projectId: "zuzutomo-d8fa0",
-        storageBucket: "zuzutomo-d8fa0.appspot.com",
-        messagingSenderId: "637121353766",
-        appId: "1:637121353766:web:dbfb13f85bfaf521616ee7",
-        measurementId: "G-C6K64YE13X"
+        apiKey: "AIzaSyDnkGy9oon2bHsp5dHDR0UozhSZdV0mDnw",
+        authDomain: "zuzunojinnja.firebaseapp.com",
+        projectId: "zuzunojinnja",
+        // 正しい storageBucket 例: "zuzunojinnja.appspot.com"
+        storageBucket: "zuzunojinnja.appspot.com",
+        messagingSenderId: "1064706171598",
+        appId: "1:1064706171598:web:04b302be4b50daf551a69f",
+        measurementId: "G-6V3Z0R03VY"
       },
+
+      // 絵馬背景、音声、動画、結果画像は GitHub raw などへ置いて URL をここに入れてください
       emaBackgroundUrl: "https://raw.githubusercontent.com/zzcafe-280/zznojinnja/main/ema.png",
       omikujiMediaUrl: "https://raw.githubusercontent.com/zzcafe-280/zznojinnja/main/omikuji.mp4",
       omikujiResultImages: [
         "https://raw.githubusercontent.com/zzcafe-280/zznojinnja/main/daikichi1.png",
         "https://raw.githubusercontent.com/zzcafe-280/zznojinnja/main/daikichi2.png",
         "https://raw.githubusercontent.com/zzcafe-280/zznojinnja/main/daikichi3.png",
-                "https://raw.githubusercontent.com/zzcafe-280/zznojinnja/main/suekichi1.png",
-                "https://raw.githubusercontent.com/zzcafe-280/zznojinnja/main/suekichi2.png",
-                "https://raw.githubusercontent.com/zzcafe-280/zznojinnja/main/suekichi3.png",
-                "https://raw.githubusercontent.com/zzcafe-280/zznojinnja/main/tyuukichi1.png",
-                "https://raw.githubusercontent.com/zzcafe-280/zznojinnja/main/tyuukichi2.png",
-                "https://raw.githubusercontent.com/zzcafe-280/zznojinnja/main/tyuukichi3.png",
-                "https://raw.githubusercontent.com/zzcafe-280/zznojinnja/main/kichi1.png",
-                "https://raw.githubusercontent.com/zzcafe-280/zznojinnja/main/kichi2.png",
-                "https://raw.githubusercontent.com/zzcafe-280/zznojinnja/main/kichi3.png",
-                "https://raw.githubusercontent.com/zzcafe-280/zznojinnja/main/syoukichi1.png",
-                "https://raw.githubusercontent.com/zzcafe-280/zznojinnja/main/syoukichi2.png",
-                "https://raw.githubusercontent.com/zzcafe-280/zznojinnja/main/syoukichi3.png",
-                "https://raw.githubusercontent.com/zzcafe-280/zznojinnja/main/kyou1.png",
-                "https://raw.githubusercontent.com/zzcafe-280/zznojinnja/main/kyou2.png",
-                "https://raw.githubusercontent.com/zzcafe-280/zznojinnja/main/kyou3.png"
-        
+        "https://raw.githubusercontent.com/zzcafe-280/zznojinnja/main/suekichi1.png",
+        "https://raw.githubusercontent.com/zzcafe-280/zznojinnja/main/suekichi2.png",
+        "https://raw.githubusercontent.com/zzcafe-280/zznojinnja/main/suekichi3.png",
+        "https://raw.githubusercontent.com/zzcafe-280/zznojinnja/main/tyuukichi1.png",
+        "https://raw.githubusercontent.com/zzcafe-280/zznojinnja/main/tyuukichi2.png",
+        "https://raw.githubusercontent.com/zzcafe-280/zznojinnja/main/tyuukichi3.png",
+        "https://raw.githubusercontent.com/zzcafe-280/zznojinnja/main/kichi1.png",
+        "https://raw.githubusercontent.com/zzcafe-280/zznojinnja/main/kichi2.png",
+        "https://raw.githubusercontent.com/zzcafe-280/zznojinnja/main/kichi3.png",
+        "https://raw.githubusercontent.com/zzcafe-280/zznojinnja/main/syoukichi1.png",
+        "https://raw.githubusercontent.com/zzcafe-280/zznojinnja/main/syoukichi2.png",
+        "https://raw.githubusercontent.com/zzcafe-280/zznojinnja/main/syoukichi3.png",
+        "https://raw.githubusercontent.com/zzcafe-280/zznojinnja/main/kyou1.png",
+        "https://raw.githubusercontent.com/zzcafe-280/zznojinnja/main/kyou2.png",
+        "https://raw.githubusercontent.com/zzcafe-280/zznojinnja/main/kyou3.png"
       ],
       clickSoundUrl: "https://raw.githubusercontent.com/zzcafe-280/zznojinnja/main/click.mp3",
-      // デフォルトは false。必要ならここで常に管理者にすることも可能。
-      isAdmin: false,
-      startDate: null
+      // 管理者フラグをサーバー検証にしない簡易方式で残す（localStorage）
+      isAdmin: false
     };
     // ----------------- /設定 -----------------
-
-    // startDate 自動計算（現在時刻より次に来る 1/1 0:00）
-    (function computeStartDate(){
-      const now = new Date();
-      const year = now.getFullYear();
-      const candidate = new Date(year, 0, 1, 0, 0, 0);
-      if (now < candidate) CONFIG.startDate = candidate;
-      else CONFIG.startDate = new Date(year + 1, 0, 1, 0, 0, 0);
-    })();
-
-    // localStorage key for admin
-    const ADMIN_KEY = 'ema_isAdmin_v1';
-
-    function isAdminUser(){
-      return CONFIG.isAdmin || localStorage.getItem(ADMIN_KEY) === '1';
-    }
 
     // --- Firebase init ---
     const app = initializeApp(CONFIG.firebaseConfig);
     const db = getFirestore(app);
     const storage = getStorage(app);
 
-    // DOM
+    // --- DOM helpers ---
     const qs = s => document.querySelector(s);
     const qsa = s => document.querySelectorAll(s);
+
     const btnDraw = qs('#btn-draw');
     const btnGallery = qs('#btn-gallery');
     const btnOmikuji = qs('#btn-omikuji');
     const backFromDraw = qs('#back-from-draw');
     const backFromGallery = qs('#back-from-gallery');
     const backFromOmikuji = qs('#back-from-omikuji');
+
     const noticeInput = qs('#notice-input');
     const toolPen = qs('#tool-pen');
     const toolEraser = qs('#tool-eraser');
     const sizeRange = qs('#size-range');
     const clearBtn = qs('#clear-canvas');
     const saveBtn = qs('#save-ema');
+
     const canvas = qs('#ema-canvas');
     const ctx = canvas.getContext('2d');
+
     const galleryRow = qs('#gallery-row');
+
     const playOmikujiBtn = qs('#play-omikuji');
     const omikujiVideo = qs('#omikuji-video');
     const omikujiResult = qs('#omikuji-result');
+
     const clickAudio = CONFIG.clickSoundUrl ? new Audio(CONFIG.clickSoundUrl) : null;
 
     // admin modal elements
+    const ADMIN_KEY = 'ema_isAdmin_v1';
     const adminOpenBtn = qs('#admin-open-btn');
     const adminModal = qs('#admin-modal');
     const adminCancel = qs('#admin-cancel');
@@ -260,38 +270,27 @@
     const adminClose = qs('#admin-close');
     const adminBadge = qs('#admin-badge');
 
-    // availability
-    function isAvailable(){
-      const now = new Date();
-      return now >= CONFIG.startDate;
-    }
-    function showUnavailableAlert(){
-      alert(`現在使用不可です（${CONFIG.startDate.toLocaleString()} から使用できます）`);
+    function isAdminUser(){
+      return CONFIG.isAdmin || localStorage.getItem(ADMIN_KEY) === '1';
     }
 
+    // Navigation (no time gating — site is always available)
     function showScreen(id){
       qsa('.screen').forEach(s => s.classList.remove('active'));
       qs('#' + id).classList.add('active');
       window.scrollTo({top:0, behavior:'smooth'});
     }
-
-    // buttons with availability (admins bypass)
     [btnDraw, btnGallery, btnOmikuji].forEach(btn=>{
-      btn.addEventListener('click', async (e)=>{
+      btn.addEventListener('click', (e)=>{
         if (clickAudio) clickAudio.play().catch(()=>{});
-        if (!isAvailable() && !isAdminUser()){
-          showUnavailableAlert();
-          return;
-        }
         if (btn.id === 'btn-draw') showScreen('draw');
         if (btn.id === 'btn-gallery') showScreen('gallery');
         if (btn.id === 'btn-omikuji') showScreen('omikuji');
       });
     });
-
-    backFromDraw.addEventListener('click', ()=>{ showScreen('home'); });
-    backFromGallery.addEventListener('click', ()=>{ showScreen('home'); });
-    backFromOmikuji.addEventListener('click', ()=>{ showScreen('home'); });
+    backFromDraw.addEventListener('click', ()=> showScreen('home'));
+    backFromGallery.addEventListener('click', ()=> showScreen('home'));
+    backFromOmikuji.addEventListener('click', ()=> showScreen('home'));
 
     // ========== Canvas / Drawing ==========
     let drawing = false;
@@ -316,7 +315,6 @@
 
     function redrawAll(){
       ctx.clearRect(0,0, canvas.width, canvas.height);
-      // background may fail if image not loaded
       try { ctx.drawImage(emaImage, 0, 0, canvas.width, canvas.height); } catch(e){}
       const notice = noticeInput.value || '';
       if (notice){
@@ -329,7 +327,6 @@
         ctx.restore();
       }
     }
-
     noticeInput.addEventListener('input', ()=>{ redrawAll(); });
 
     function pointerDown(e){
@@ -339,12 +336,8 @@
       ctx.lineWidth = penSize;
       ctx.lineCap = "round";
       ctx.lineJoin = "round";
-      if (tool === 'eraser'){
-        ctx.globalCompositeOperation = 'destination-out';
-      } else {
-        ctx.globalCompositeOperation = 'source-over';
-        ctx.strokeStyle = '#000';
-      }
+      if (tool === 'eraser') ctx.globalCompositeOperation = 'destination-out';
+      else { ctx.globalCompositeOperation = 'source-over'; ctx.strokeStyle = '#000'; }
       ctx.moveTo(p.x, p.y);
     }
     function pointerMove(e){
@@ -357,7 +350,6 @@
       drawing = false;
       ctx.closePath();
     }
-
     function getPointerPos(e){
       const rect = canvas.getBoundingClientRect();
       const clientX = (e.clientX !== undefined) ? e.clientX : (e.touches && e.touches[0].clientX);
@@ -366,7 +358,6 @@
       const y = (clientY - rect.top) * (canvas.height / rect.height);
       return {x,y};
     }
-
     canvas.addEventListener('pointerdown', pointerDown);
     canvas.addEventListener('pointermove', pointerMove);
     canvas.addEventListener('pointerup', pointerUp);
@@ -374,21 +365,17 @@
     canvas.addEventListener('pointercancel', pointerUp);
 
     toolPen.addEventListener('click', ()=>{
-      tool = 'pen';
-      toolPen.classList.add('active'); toolEraser.classList.remove('active');
+      tool = 'pen'; toolPen.classList.add('active'); toolEraser.classList.remove('active');
     });
     toolEraser.addEventListener('click', ()=>{
-      tool = 'eraser';
-      toolEraser.classList.add('active'); toolPen.classList.remove('active');
+      tool = 'eraser'; toolEraser.classList.add('active'); toolPen.classList.remove('active');
     });
     sizeRange.addEventListener('input', (e)=>{ penSize = parseInt(e.target.value,10); });
     clearBtn.addEventListener('click', ()=>{ redrawAll(); });
 
-    // 保存処理
+    // ========== Save to Firebase Storage + Firestore ==========
     saveBtn.addEventListener('click', async ()=>{
       if (clickAudio) clickAudio.play().catch(()=>{});
-      if (!isAvailable() && !isAdminUser()){ showUnavailableAlert(); return; }
-
       saveBtn.disabled = true;
       saveBtn.textContent = '保存中...';
 
@@ -397,7 +384,7 @@
         const timestamp = Date.now();
         const filename = `ema_${timestamp}.png`;
         const sRef = storageRef(storage, `emas/${filename}`);
-        await uploadBytes(sRef, blob);
+        await uploadBytes(sRef, blob); // might fail if storage CORS/rules not set
         const url = await getDownloadURL(sRef);
         await addDoc(collection(db, 'emas'), {
           url,
@@ -407,32 +394,38 @@
         alert('保存しました！ホームに戻ります。');
         showScreen('home');
       } catch (err){
-        console.error(err);
-        alert('保存に失敗しました。コンソールを確認してください。');
+        console.error('保存エラー:', err);
+        alert('保存に失敗しました。\nコンソールのエラーを確認してください（permission/cors の可能性あり）。');
       } finally {
         saveBtn.disabled = false;
         saveBtn.textContent = '保存';
       }
     });
 
-    // ========== Gallery ==========
+    // ========== Gallery (list & live) ==========
     async function fetchGalleryOnce(){
-      const q = query(collection(db, 'emas'), orderBy('createdAt','desc'));
-      const snap = await getDocs(q);
-      const items = [];
-      snap.forEach(d => items.push({ id: d.id, ...d.data() }));
-      renderGallery(items);
+      try {
+        const q = query(collection(db, 'emas'), orderBy('createdAt','desc'));
+        const snap = await getDocs(q);
+        const items = [];
+        snap.forEach(d => items.push({ id: d.id, ...d.data() }));
+        renderGallery(items);
+      } catch (err){
+        console.error('fetchGalleryOnce error', err);
+        alert('ギャラリー取得でエラーが発生しました（permission の可能性）。コンソール確認を。');
+      }
     }
-
     function listenGallery(){
       const q = query(collection(db, 'emas'), orderBy('createdAt','desc'));
       return onSnapshot(q, snap => {
         const items = [];
         snap.forEach(doc => items.push({ id: doc.id, ...doc.data() }));
         renderGallery(items);
+      }, err => {
+        console.error('onSnapshot error', err);
+        alert('ギャラリーのリアルタイム取得でエラーが発生しました（permission の可能性）。');
       });
     }
-
     function renderGallery(items){
       galleryRow.innerHTML = '';
       items.forEach(item => {
@@ -478,12 +471,10 @@
     }
 
     qs('#btn-gallery').addEventListener('click', ()=>{
-      if (!isAvailable() && !isAdminUser()) return;
       fetchGalleryOnce();
       if (window._galleryUnsub) window._galleryUnsub();
       window._galleryUnsub = listenGallery();
     });
-
     backFromGallery.addEventListener('click', ()=>{
       if (window._galleryUnsub) { window._galleryUnsub(); window._galleryUnsub = null; }
     });
@@ -491,16 +482,12 @@
     // ========== Omikuji ==========
     omikujiVideo.src = CONFIG.omikujiMediaUrl;
     omikujiVideo.crossOrigin = 'anonymous';
-
     playOmikujiBtn.addEventListener('click', ()=>{
       if (clickAudio) clickAudio.play().catch(()=>{});
-      if (!isAvailable() && !isAdminUser()) { showUnavailableAlert(); return; }
-
       omikujiResult.style.display = 'none';
       omikujiVideo.style.display = 'block';
       omikujiVideo.currentTime = 0;
       omikujiVideo.play().catch(()=>{});
-
       const onEnd = ()=>{
         omikujiVideo.style.display = 'none';
         const arr = CONFIG.omikujiResultImages;
@@ -516,30 +503,21 @@
       omikujiVideo.addEventListener('ended', onEnd);
     });
 
-    // ========== Admin UI ロジック ==========
+    // ========== Admin UI ==========
     function updateAdminUI(){
       if (isAdminUser()){
         adminBadge.classList.add('visible');
         adminNotLogged.style.display = 'none';
         adminLogged.style.display = 'block';
-        // enable buttons visually
-        [btnDraw, btnGallery, btnOmikuji].forEach(b => b.classList.remove('disabled'));
       } else {
         adminBadge.classList.remove('visible');
         adminNotLogged.style.display = 'block';
         adminLogged.style.display = 'none';
-        // if before start date, disable visually
-        if (!isAvailable()){
-          [btnDraw, btnGallery, btnOmikuji].forEach(b => b.classList.add('disabled'));
-        }
       }
     }
-
     adminOpenBtn.addEventListener('click', ()=>{
-      // open modal
       adminModal.style.display = 'flex';
       adminModal.setAttribute('aria-hidden','false');
-      // set view based on login
       updateAdminUI();
     });
     adminCancel.addEventListener('click', ()=>{
@@ -547,10 +525,8 @@
       adminModal.setAttribute('aria-hidden','true');
       adminPass.value = '';
     });
-
     adminLoginBtn.addEventListener('click', ()=>{
       const pass = adminPass.value || '';
-      // パスワードは固定: 1122
       if (pass === '1122'){
         localStorage.setItem(ADMIN_KEY, '1');
         alert('管理者としてログインしました（このブラウザで常時有効）');
@@ -560,20 +536,16 @@
         alert('パスワードが違います');
       }
     });
-
     adminLogout.addEventListener('click', ()=>{
       if (!confirm('ログアウトしますか？このブラウザでの管理権限を削除します。')) return;
       localStorage.removeItem(ADMIN_KEY);
       alert('ログアウトしました');
       updateAdminUI();
     });
-
     adminClose.addEventListener('click', ()=>{
       adminModal.style.display = 'none';
       adminModal.setAttribute('aria-hidden','true');
     });
-
-    // close modal when clicking background
     adminModal.addEventListener('click', (e)=>{
       if (e.target === adminModal){
         adminModal.style.display = 'none';
@@ -581,18 +553,14 @@
       }
     });
 
-    // ========== 初期化 ==========
+    // ========== Init ==========
     function init(){
       redrawAll();
       updateAdminUI();
-      // show disabled if not available and not admin
-      if (!isAvailable() && !isAdminUser()){
-        [btnDraw, btnGallery, btnOmikuji].forEach(b=> b.classList.add('disabled'));
-      }
     }
     init();
 
-    // make CONFIG accessible for debugging
+    // expose for debugging
     window._EMA_APP = { CONFIG, db, storage, isAdminUser };
   </script>
 </body>
