@@ -3,70 +3,60 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>初詣 ずずノ神社（修正版）</title>
+  <title>初詣 ずずノ神社（修正版：背景保持・透明消しゴム）</title>
   <style>
-    :root{
-      --bg:#fffaf2;
-      --accent:#b22222;
-      --paper:#fffefb;
-      --text:#2b2b2b;
-    }
+    :root{--bg:#fffaf2;--accent:#b22222;--paper:#fffefb;--text:#2b2b2b;}
     *{box-sizing:border-box}
-    html,body,#app{height:100%; margin:0; font-family: "Hiragino Kaku Gothic ProN","Noto Sans JP",system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;}
+    html,body,#app{height:100%; margin:0; font-family:"Hiragino Kaku Gothic ProN","Noto Sans JP",system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial;}
     body{background:
-      radial-gradient(circle at 10% 10%, rgba(255, 230, 230,0.5), transparent 10%),
-      linear-gradient(180deg, #fffdf7 0%, #fff7f0 100%);
-      color:var(--text);
-      padding-bottom:120px;
+      radial-gradient(circle at 10% 10%, rgba(255,230,230,0.5), transparent 10%),
+      linear-gradient(180deg,#fffdf7 0%,#fff7f0 100%);
+      color:var(--text); padding-bottom:120px;
     }
-    .header{ text-align:center; padding:20px 10px 0 10px; background-image: linear-gradient(90deg, rgba(178,34,34,0.07), rgba(255,160,122,0.03)); border-bottom: 1px solid #ffe7e0; }
-    .header h1{margin:0; color:var(--accent); font-size:1.8rem;}
-    .subtitle{margin:6px 0 12px 0; color:#6b6b6b}
-    .screen{display:none; padding:18px; max-width:1100px; margin:0 auto;}
+    .header{ text-align:center; padding:20px 10px 0 10px; background-image:linear-gradient(90deg, rgba(178,34,34,0.07), rgba(255,160,122,0.03)); border-bottom:1px solid #ffe7e0; }
+    .header h1{margin:0;color:var(--accent);font-size:1.8rem;}
+    .subtitle{margin:6px 0 12px 0;color:#6b6b6b}
+    .screen{display:none;padding:18px;max-width:1100px;margin:0 auto;}
     .screen.active{display:block}
-    .buttons{display:flex; gap:12px; justify-content:center; flex-wrap:wrap; margin-top:30px}
-    .big{background:var(--accent); color:white; border:none; padding:18px 28px; font-size:1.2rem; border-radius:10px; cursor:pointer; box-shadow:0 6px 0 rgba(0,0,0,0.06)}
-    .topbar{display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:10px; padding:6px 10px}
-    .tool-controls{display:flex; gap:8px; align-items:center}
-    .tool{padding:8px 10px; border-radius:8px; border:1px solid #ddd; background:white; cursor:pointer}
-    .tool.active{border-color:var(--accent); box-shadow:0 2px 0 rgba(178,34,34,0.1)}
-    .canvas-wrap{display:flex; justify-content:center; padding:8px; position:relative}
-    .ema-layer{position:absolute; left:0; top:0; width:100%; height:100%}
-    #bg-canvas, #strokes-canvas { border-radius:8px; box-shadow:0 6px 24px rgba(0,0,0,0.08); background:transparent; touch-action:none; display:block; }
-    #bg-canvas { z-index:1; pointer-events:none; } /* background never receives pointer events */
-    #strokes-canvas { z-index:2; }
-    .palette{display:flex; gap:6px; align-items:center; padding-left:8px}
-    .swatch{width:28px; height:28px; border-radius:6px; border:2px solid rgba(255,255,255,0.6); box-shadow:0 1px 0 rgba(0,0,0,0.06); cursor:pointer}
+    .buttons{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:30px}
+    .big{background:var(--accent);color:white;border:none;padding:18px 28px;font-size:1.2rem;border-radius:10px;cursor:pointer;box-shadow:0 6px 0 rgba(0,0,0,0.06)}
+    .topbar{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:10px;padding:6px 10px}
+    .tool-controls{display:flex;gap:8px;align-items:center}
+    .tool{padding:8px 10px;border-radius:8px;border:1px solid #ddd;background:white;cursor:pointer}
+    .tool.active{border-color:var(--accent);box-shadow:0 2px 0 rgba(178,34,34,0.1)}
+    .canvas-wrap{display:flex;justify-content:center;padding:8px;position:relative}
+    .ema-layer{position:absolute;left:0;top:0;width:100%;height:100%}
+    #bg-canvas,#strokes-canvas{border-radius:8px;box-shadow:0 6px 24px rgba(0,0,0,0.08);background:transparent;touch-action:none;display:block}
+    #bg-canvas{z-index:1;pointer-events:none}
+    #strokes-canvas{z-index:2}
+    .palette{display:flex;gap:6px;align-items:center;padding-left:8px}
+    .swatch{width:28px;height:28px;border-radius:6px;border:2px solid rgba(255,255,255,0.6);box-shadow:0 1px 0 rgba(0,0,0,0.06);cursor:pointer}
     .swatch.selected{outline:3px solid rgba(0,0,0,0.12)}
-    .size-indicator{font-size:13px; color:#444; margin-left:8px}
-    .actions{display:flex; justify-content:center; gap:12px; margin-top:12px}
-    .primary{background:var(--accent); color:white; border:none; padding:10px 16px; border-radius:8px; cursor:pointer}
-    .secondary{background:#fff; border:1px solid #ddd; padding:10px 16px; border-radius:8px; cursor:pointer}
-    .gallery-row{display:flex; gap:12px; overflow-x:auto; padding:12px 8px; align-items:flex-start}
-    .gallery-item{min-width:240px; border-radius:8px; background:white; padding:6px; box-shadow:0 4px 10px rgba(0,0,0,0.06)}
-    .gallery-item canvas{display:block; width:100%; height:auto; border-radius:6px; background:transparent}
-    .meta{display:flex; justify-content:space-between; align-items:center; margin-top:6px}
-    .author{font-size:12px; color:#666; margin-left:6px}
-    .omikuji-area{display:flex; justify-content:center; align-items:center; min-height:320px; gap:12px; flex-direction:column}
-    .footer{position:fixed; left:18px; bottom:8px; color:#7a7a7a}
-    .admin-open-btn{ position:fixed; left:18px; bottom:18px; background:rgba(0,0,0,0.06); border-radius:8px; padding:8px 10px; cursor:pointer; font-size:12px; border:1px solid rgba(0,0,0,0.06) }
-    .admin-badge{position:fixed; right:18px; bottom:18px; background:var(--accent); color:white; padding:6px 8px; border-radius:8px; font-size:12px; display:none}
+    .size-indicator{font-size:13px;color:#444;margin-left:8px}
+    .actions{display:flex;justify-content:center;gap:12px;margin-top:12px}
+    .primary{background:var(--accent);color:white;border:none;padding:10px 16px;border-radius:8px;cursor:pointer}
+    .secondary{background:#fff;border:1px solid #ddd;padding:10px 16px;border-radius:8px;cursor:pointer}
+    .gallery-row{display:flex;gap:12px;overflow-x:auto;padding:12px 8px;align-items:flex-start}
+    .gallery-item{min-width:240px;border-radius:8px;background:white;padding:6px;box-shadow:0 4px 10px rgba(0,0,0,0.06)}
+    .gallery-item canvas{display:block;width:100%;height:auto;border-radius:6px;background:transparent}
+    .meta{display:flex;justify-content:space-between;align-items:center;margin-top:6px}
+    .author{font-size:12px;color:#666;margin-left:6px}
+    .footer{position:fixed;left:18px;bottom:8px;color:#7a7a7a}
+    .admin-open-btn{position:fixed;left:18px;bottom:18px;background:rgba(0,0,0,0.06);border-radius:8px;padding:8px 10px;cursor:pointer;font-size:12px;border:1px solid rgba(0,0,0,0.06)}
+    .admin-badge{position:fixed;right:18px;bottom:18px;background:var(--accent);color:white;padding:6px 8px;border-radius:8px;font-size:12px;display:none}
     .admin-badge.visible{display:block}
-    .admin-modal{ position:fixed; left:0; top:0; right:0; bottom:0; display:flex; align-items:center; justify-content:center; background:rgba(0,0,0,0.35); }
-    .admin-box{background:white; padding:18px; border-radius:10px; width:320px; box-shadow:0 10px 30px rgba(0,0,0,0.2)}
-    .admin-box input{width:100%; padding:8px; margin-top:8px; margin-bottom:12px; box-sizing:border-box}
-    .name-input{width:200px; padding:6px; border:1px solid #ddd; border-radius:6px}
-    @media(max-width:880px){
-      #bg-canvas, #strokes-canvas{width:92%}
-      .gallery-item{min-width:160px}
-    }
+    .admin-modal{position:fixed;left:0;top:0;right:0;bottom:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.35)}
+    .admin-box{background:white;padding:18px;border-radius:10px;width:320px;box-shadow:0 10px 30px rgba(0,0,0,0.2)}
+    .admin-box input{width:100%;padding:8px;margin-top:8px;margin-bottom:12px;box-sizing:border-box}
+    .name-input{width:200px;padding:6px;border:1px solid #ddd;border-radius:6px}
+    @media(max-width:880px){#bg-canvas,#strokes-canvas{width:92%}.gallery-item{min-width:160px}}
   </style>
 </head>
 <body>
   <div id="app">
     <header class="header">
       <h1>初詣 ずずノ神社</h1>
-      <p class="subtitle"></p>
+      <p class="subtitle">いつでもご利用できます — 描画データは Firestore に保存</p>
     </header>
 
     <main>
@@ -79,13 +69,13 @@
       </section>
 
       <section id="draw" class="screen">
-        <div style="text-align:center; font-size:13px; color:#555; margin-bottom:8px;">
+        <div style="text-align:center;font-size:13px;color:#555;margin-bottom:8px;">
           SNSなどで紹介することがあります。広く見られてもよい願い・絵のみお書きください。
         </div>
 
         <div class="topbar" style="align-items:center;">
-          <div style="display:flex; gap:8px; align-items:center;">
-            <label style="font-size:13px; color:#444;">お名前（省略可）</label>
+          <div style="display:flex;gap:8px;align-items:center;">
+            <label style="font-size:13px;color:#444;">お名前（省略可）</label>
             <input id="author-name" class="name-input" placeholder="例：さくら" />
           </div>
 
@@ -96,12 +86,12 @@
           </div>
         </div>
 
-        <div class="canvas-wrap" id="canvas-wrap" style="height:520px; max-width:820px; margin:0 auto;">
+        <div class="canvas-wrap" id="canvas-wrap" style="height:520px;max-width:820px;margin:0 auto;">
           <canvas id="bg-canvas" class="ema-layer"></canvas>
           <canvas id="strokes-canvas" class="ema-layer"></canvas>
         </div>
 
-        <div style="display:flex; justify-content:center; gap:14px; margin-top:10px; align-items:center;">
+        <div style="display:flex;justify-content:center;gap:14px;margin-top:10px;align-items:center;">
           <div class="palette" id="palette"></div>
           <div class="size-indicator">サイズ: <span id="size-val">6</span> px</div>
         </div>
@@ -123,15 +113,14 @@
       <section id="omikuji" class="screen">
         <h2>おみくじ</h2>
         <div id="omikuji-area" class="omikuji-area">
-          <video id="omikuji-video" controls playsinline style="max-width:90%; display:none;"></video>
-          <img id="omikuji-result" alt="おみくじ結果" style="max-width:80%; display:none;" />
+          <video id="omikuji-video" controls playsinline style="max-width:90%;display:none;"></video>
+          <img id="omikuji-result" alt="おみくじ結果" style="max-width:80%;display:none;" />
         </div>
         <div class="actions">
           <button id="play-omikuji" class="primary">おみくじを再生</button>
           <button id="back-from-omikuji" class="secondary">ホームへ</button>
         </div>
       </section>
-
     </main>
 
     <footer class="footer">
@@ -156,7 +145,7 @@
           <div id="admin-logged" style="display:none">
             <div style="font-weight:bold">管理者: ログイン中</div>
             <div style="margin-top:8px;font-size:13px;color:#666">このブラウザでは常時管理者として操作できます。</div>
-            <div style="margin-top:12px; display:flex; gap:8px; justify-content:flex-end">
+            <div style="margin-top:12px;display:flex;gap:8px;justify-content:flex-end">
               <button id="admin-logout" class="secondary">ログアウト</button>
               <button id="admin-close" class="primary">閉じる</button>
             </div>
@@ -168,22 +157,12 @@
   </div>
 
   <script type="module">
-    // Firebase v12 modular
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
     import {
-      getFirestore,
-      collection,
-      addDoc,
-      query,
-      orderBy,
-      getDocs,
-      onSnapshot,
-      serverTimestamp,
-      doc,
-      deleteDoc
+      getFirestore, collection, addDoc, query, orderBy, getDocs, onSnapshot,
+      serverTimestamp, doc, deleteDoc
     } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
 
-    // ---------- 設定 ----------
     const CONFIG = {
       firebaseConfig: {
         apiKey: "AIzaSyDnkGy9oon2bHsp5dHDR0UozhSZdV0mDnw",
@@ -199,33 +178,13 @@
       omikujiResultImages: [
         "https://raw.githubusercontent.com/zzcafe-280/zznojinnja/main/daikichi1.png",
         "https://raw.githubusercontent.com/zzcafe-280/zznojinnja/main/daikichi2.png",
-        "https://raw.githubusercontent.com/zzcafe-280/zznojinnja/main/daikichi3.png",
-                "https://raw.githubusercontent.com/zzcafe-280/zznojinnja/main/suekichi1.png",
-                "https://raw.githubusercontent.com/zzcafe-280/zznojinnja/main/suekichi2.png",
-                "https://raw.githubusercontent.com/zzcafe-280/zznojinnja/main/suekichi3.png",
-                "https://raw.githubusercontent.com/zzcafe-280/zznojinnja/main/tyuukichi1.png",
-                "https://raw.githubusercontent.com/zzcafe-280/zznojinnja/main/tyuukichi2.png",
-                "https://raw.githubusercontent.com/zzcafe-280/zznojinnja/main/tyuukichi3.png",
-                "https://raw.githubusercontent.com/zzcafe-280/zznojinnja/main/kichi1.png",
-                "https://raw.githubusercontent.com/zzcafe-280/zznojinnja/main/kichi2.png",
-                "https://raw.githubusercontent.com/zzcafe-280/zznojinnja/main/kichi3.png",
-                "https://raw.githubusercontent.com/zzcafe-280/zznojinnja/main/syoukichi1.png",
-                "https://raw.githubusercontent.com/zzcafe-280/zznojinnja/main/syoukichi2.png",
-                "https://raw.githubusercontent.com/zzcafe-280/zznojinnja/main/syoukichi3.png",
-                "https://raw.githubusercontent.com/zzcafe-280/zznojinnja/main/kyou1.png",
-                "https://raw.githubusercontent.com/zzcafe-280/zznojinnja/main/kyou2.png",
-                "https://raw.githubusercontent.com/zzcafe-280/zznojinnja/main/kyou3.png"
+        "https://raw.githubusercontent.com/zzcafe-280/zznojinnja/main/daikichi3.png"
       ],
       clickSoundUrl: "https://raw.githubusercontent.com/zzcafe-280/zznojinnja/main/click.mp3"
     };
-    // ---------- /設定 ----------
 
-    // UUID for owner identification (stored per-browser)
-    function uid(){
-      return 'u_' + ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g, c =>
-        (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16)
-      );
-    }
+    // owner id (per browser)
+    function uid(){ return 'u_' + ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g,c => (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c/4).toString(16)); }
     const OWNER_KEY = 'ema_owner_id_v1';
     if (!localStorage.getItem(OWNER_KEY)) localStorage.setItem(OWNER_KEY, uid());
 
@@ -235,135 +194,85 @@
     const qs = s => document.querySelector(s);
     const qsa = s => document.querySelectorAll(s);
 
-    // UI elements
-    const btnDraw = qs('#btn-draw');
-    const btnGallery = qs('#btn-gallery');
-    const btnOmikuji = qs('#btn-omikuji');
-    const backFromDraw = qs('#back-from-draw');
-    const backFromGallery = qs('#back-from-gallery');
-    const backFromOmikuji = qs('#back-from-omikuji');
+    const btnDraw = qs('#btn-draw'), btnGallery = qs('#btn-gallery'), btnOmikuji = qs('#btn-omikuji');
+    const backFromDraw = qs('#back-from-draw'), backFromGallery = qs('#back-from-gallery'), backFromOmikuji = qs('#back-from-omikuji');
 
     const authorNameInput = qs('#author-name');
-    const toolPen = qs('#tool-pen');
-    const toolEraser = qs('#tool-eraser');
-    const sizeRange = qs('#size-range');
-    const sizeVal = qs('#size-val');
+    const toolPen = qs('#tool-pen'), toolEraser = qs('#tool-eraser'), sizeRange = qs('#size-range'), sizeVal = qs('#size-val');
     const saveBtn = qs('#save-ema');
 
-    const canvasWrap = qs('#canvas-wrap');
-    const bgCanvas = qs('#bg-canvas');
-    const strokesCanvas = qs('#strokes-canvas');
-
+    const canvasWrap = qs('#canvas-wrap'), bgCanvas = qs('#bg-canvas'), strokesCanvas = qs('#strokes-canvas');
     const galleryRow = qs('#gallery-row');
-
-    const playOmikujiBtn = qs('#play-omikuji');
-    const omikujiVideo = qs('#omikuji-video');
-    const omikujiResult = qs('#omikuji-result');
+    const playOmikujiBtn = qs('#play-omikuji'), omikujiVideo = qs('#omikuji-video'), omikujiResult = qs('#omikuji-result');
 
     const clickAudio = CONFIG.clickSoundUrl ? new Audio(CONFIG.clickSoundUrl) : null;
 
-    // admin UI
     const ADMIN_KEY = 'ema_isAdmin_v1';
-    const adminOpenBtn = qs('#admin-open-btn');
-    const adminModal = qs('#admin-modal');
-    const adminCancel = qs('#admin-cancel');
-    const adminLoginBtn = qs('#admin-login');
-    const adminPass = qs('#admin-pass');
-    const adminLogged = qs('#admin-logged');
-    const adminNotLogged = qs('#admin-not-logged');
-    const adminLogout = qs('#admin-logout');
-    const adminClose = qs('#admin-close');
-    const adminBadge = qs('#admin-badge');
+    const adminOpenBtn = qs('#admin-open-btn'), adminModal = qs('#admin-modal'), adminCancel = qs('#admin-cancel'), adminLoginBtn = qs('#admin-login'), adminPass = qs('#admin-pass');
+    const adminLogged = qs('#admin-logged'), adminNotLogged = qs('#admin-not-logged'), adminLogout = qs('#admin-logout'), adminClose = qs('#admin-close'), adminBadge = qs('#admin-badge');
     function isAdminUser(){ return localStorage.getItem(ADMIN_KEY) === '1'; }
 
-    // 2D contexts and logical size
-    const bgCtx = bgCanvas.getContext('2d');
-    const sCtx = strokesCanvas.getContext('2d');
-    const LOGICAL_W = 1640;
-    const LOGICAL_H = 1040;
+    const bgCtx = bgCanvas.getContext('2d'), sCtx = strokesCanvas.getContext('2d');
+    const LOGICAL_W = 1640, LOGICAL_H = 1040;
 
-    // ResizeObserver to avoid transient zero-size canvas problems
+    // Resize handling: CSS size for display + fixed backing logical size
     function resizeLayerCanvases(){
       const wrapRect = canvasWrap.getBoundingClientRect();
-      // If wrapper not visible/0-size, set reasonable CSS size and don't set pixel size yet.
       const maxWidth = Math.min(window.innerWidth - 40, 820);
       const cssWidth = wrapRect.width > 0 ? wrapRect.width : maxWidth;
       const cssHeight = (LOGICAL_H / LOGICAL_W) * cssWidth;
-      // Always set CSS size so canvases render visually; set backing store size to logical for consistent coordinates
       bgCanvas.style.width = `${cssWidth}px`; bgCanvas.style.height = `${cssHeight}px`;
       strokesCanvas.style.width = `${cssWidth}px`; strokesCanvas.style.height = `${cssHeight}px`;
-      // set backing pixel size (logical) to keep normalized coords consistent
       bgCanvas.width = LOGICAL_W; bgCanvas.height = LOGICAL_H;
       strokesCanvas.width = LOGICAL_W; strokesCanvas.height = LOGICAL_H;
+      // always redraw background when resize changes backing store to avoid cleared bg
+      drawBackground();
+      redrawStrokes();
     }
     const ro = new ResizeObserver(()=> resizeLayerCanvases());
     ro.observe(canvasWrap);
     window.addEventListener('resize', ()=> setTimeout(resizeLayerCanvases, 50));
 
-    // Load background image and keep "loaded" promise
-    const emaImage = new Image();
-    emaImage.crossOrigin = "anonymous";
-    emaImage.src = CONFIG.emaBackgroundUrl;
+    // load background image
+    const emaImage = new Image(); emaImage.crossOrigin = "anonymous"; emaImage.src = CONFIG.emaBackgroundUrl;
     let emaLoaded = false;
     const waitForEma = new Promise(resolve => {
-      emaImage.addEventListener('load', () => { emaLoaded = true; resolve(true); resizeLayerCanvases(); drawBackground(); redrawStrokes(); });
-      emaImage.addEventListener('error', (e) => { console.warn('ema.png load failed', e); resolve(false); });
+      emaImage.addEventListener('load', ()=>{ emaLoaded = true; resizeLayerCanvases(); drawBackground(); redrawStrokes(); resolve(true); });
+      emaImage.addEventListener('error', (e)=>{ console.warn('ema load failed', e); resolve(false); });
     });
 
     function drawBackground(){
-      // ensure logical size and clear
       bgCanvas.width = LOGICAL_W; bgCanvas.height = LOGICAL_H;
       bgCtx.clearRect(0,0,LOGICAL_W,LOGICAL_H);
       if (emaLoaded && emaImage.naturalWidth > 0){
         bgCtx.drawImage(emaImage, 0, 0, LOGICAL_W, LOGICAL_H);
       } else {
-        // If emaImage not loaded, DON'T fill white (leave transparent) so erased areas show transparency correctly.
-        // But to give user feedback, draw a faint placeholder frame.
-        bgCtx.fillStyle = 'rgba(255,255,255,0.0)';
-        bgCtx.fillRect(0,0,LOGICAL_W,LOGICAL_H);
+        // leave transparent background (do NOT fill white)
+        bgCtx.clearRect(0,0,LOGICAL_W,LOGICAL_H);
       }
-      // Static notice is shown in DOM above; do not write notice onto bg canvas (keeps bg pure)
     }
 
-    // strokes: normalized coords
+    // strokes storage
     let strokes = [];
-    let drawing = false;
-    let currentStroke = null;
+    let drawing = false, currentStroke = null;
     let tool = 'pen';
     let penSize = parseInt(sizeRange.value,10) || 6;
     sizeVal.textContent = penSize;
 
-    // palette (colors requested)
     const PALETTE = [
-      {name:'桃色', color:'#ffb6c1'},
-      {name:'赤',   color:'#ff3b30'},
-      {name:'橙',   color:'#ff9500'},
-      {name:'黄',   color:'#ffd60a'},
-      {name:'緑',   color:'#34c759'},
-      {name:'青',   color:'#0a84ff'},
-      {name:'紫',   color:'#af52de'},
-      {name:'茶',   color:'#8b5a2b'},
-      {name:'黒',   color:'#000000'}
+      {name:'桃色', color:'#ffb6c1'},{name:'赤', color:'#ff3b30'},{name:'橙', color:'#ff9500'},
+      {name:'黄', color:'#ffd60a'},{name:'緑', color:'#34c759'},{name:'青', color:'#0a84ff'},
+      {name:'紫', color:'#af52de'},{name:'茶', color:'#8b5a2b'},{name:'黒', color:'#000000'}
     ];
     let currentColor = '#000000';
     const paletteEl = qs('#palette');
     PALETTE.forEach(p=>{
-      const sw = document.createElement('div');
-      sw.className = 'swatch';
-      sw.title = p.name;
-      sw.style.background = p.color;
-      sw.dataset.color = p.color;
+      const sw = document.createElement('div'); sw.className='swatch'; sw.title=p.name; sw.style.background=p.color; sw.dataset.color=p.color;
       if (p.color === currentColor) sw.classList.add('selected');
-      sw.addEventListener('click', ()=>{
-        currentColor = p.color;
-        qsa('.swatch').forEach(s=>s.classList.remove('selected'));
-        sw.classList.add('selected');
-        tool = 'pen'; toolPen.classList.add('active'); toolEraser.classList.remove('active');
-      });
+      sw.addEventListener('click', ()=>{ currentColor = p.color; qsa('.swatch').forEach(s=>s.classList.remove('selected')); sw.classList.add('selected'); tool='pen'; toolPen.classList.add('active'); toolEraser.classList.remove('active'); });
       paletteEl.appendChild(sw);
     });
 
-    // pointer mapping (screen -> normalized [0..1])
     function getPointerInLogical(e){
       const rect = strokesCanvas.getBoundingClientRect();
       const clientX = (e.clientX !== undefined) ? e.clientX : (e.touches && e.touches[0].clientX);
@@ -376,32 +285,25 @@
     }
 
     function beginStroke(e){
-      // ensure correct canvas size before starting
-      resizeLayerCanvases();
+      // do NOT call resize here to avoid clearing bg in the middle of drawing
       drawing = true;
       const p = getPointerInLogical(e);
       const widthNorm = penSize / LOGICAL_W;
-      currentStroke = {
-        type: tool === 'eraser' ? 'eraser' : 'pen',
-        color: currentColor,
-        widthNorm,
-        points: [{x: p.x, y: p.y}]
-      };
-      // immediate render
+      currentStroke = { type: tool==='eraser' ? 'eraser' : 'pen', color: currentColor, widthNorm, points: [{x:p.x,y:p.y}] };
       redrawStrokes();
     }
     function moveStroke(e){
       if (!drawing || !currentStroke) return;
       const p = getPointerInLogical(e);
-      const last = currentStroke.points[currentStroke.points.length - 1];
-      if (last && Math.hypot(last.x - p.x, last.y - p.y) < 0.0005) return; // avoid dense duplicates
-      currentStroke.points.push({x: p.x, y: p.y});
+      const last = currentStroke.points[currentStroke.points.length-1];
+      if (last && Math.hypot(last.x - p.x, last.y - p.y) < 0.0005) return;
+      currentStroke.points.push({x:p.x,y:p.y});
       redrawStrokes();
     }
     function endStroke(e){
       if (!drawing) return;
       drawing = false;
-      if (currentStroke && currentStroke.points.length > 0) strokes.push(currentStroke);
+      if (currentStroke && currentStroke.points.length) strokes.push(currentStroke);
       currentStroke = null;
       redrawStrokes();
     }
@@ -412,248 +314,148 @@
     strokesCanvas.addEventListener('pointerout', endStroke);
     strokesCanvas.addEventListener('pointercancel', endStroke);
 
-    toolPen.addEventListener('click', ()=>{ tool = 'pen'; toolPen.classList.add('active'); toolEraser.classList.remove('active'); });
-    toolEraser.addEventListener('click', ()=>{ tool = 'eraser'; toolEraser.classList.add('active'); toolPen.classList.remove('active'); });
-    sizeRange.addEventListener('input', (e)=>{ penSize = parseInt(e.target.value,10); sizeVal.textContent = penSize; });
+    toolPen.addEventListener('click', ()=>{ tool='pen'; toolPen.classList.add('active'); toolEraser.classList.remove('active'); });
+    toolEraser.addEventListener('click', ()=>{ tool='eraser'; toolEraser.classList.add('active'); toolPen.classList.remove('active'); });
+    sizeRange.addEventListener('input', (e)=>{ penSize=parseInt(e.target.value,10); sizeVal.textContent = penSize; });
 
     function redrawStrokes(){
-      // Ensure logical backing size before drawing
+      // draw strokes onto strokesCanvas (stroke-layer only). Eraser uses destination-out so it removes only stroke-layer pixels.
       strokesCanvas.width = LOGICAL_W; strokesCanvas.height = LOGICAL_H;
       sCtx.clearRect(0,0,LOGICAL_W,LOGICAL_H);
       const all = strokes.concat(currentStroke ? [currentStroke] : []);
       for (const st of all){
         if (!st) continue;
-        if (st.type === 'pen'){
-          sCtx.globalCompositeOperation = 'source-over';
-          sCtx.strokeStyle = st.color || '#000';
-        } else {
-          sCtx.globalCompositeOperation = 'destination-out';
-          sCtx.strokeStyle = 'rgba(0,0,0,1)';
-        }
+        if (st.type === 'pen'){ sCtx.globalCompositeOperation = 'source-over'; sCtx.strokeStyle = st.color || '#000'; }
+        else { sCtx.globalCompositeOperation = 'destination-out'; sCtx.strokeStyle = 'rgba(0,0,0,1)'; }
         sCtx.lineWidth = (st.widthNorm || 0.004) * LOGICAL_W;
-        sCtx.lineJoin = 'round';
-        sCtx.lineCap = 'round';
+        sCtx.lineJoin = 'round'; sCtx.lineCap = 'round';
         sCtx.beginPath();
         for (let i=0;i<st.points.length;i++){
           const p = st.points[i];
-          const x = p.x * LOGICAL_W;
-          const y = p.y * LOGICAL_H;
-          if (i===0) sCtx.moveTo(x,y);
-          else sCtx.lineTo(x,y);
+          const x = p.x * LOGICAL_W, y = p.y * LOGICAL_H;
+          if (i===0) sCtx.moveTo(x,y); else sCtx.lineTo(x,y);
         }
         sCtx.stroke();
       }
       sCtx.globalCompositeOperation = 'source-over';
     }
 
-    // Save strokes to Firestore with owner and authorName
+    // save (with owner & author)
     saveBtn.addEventListener('click', async ()=>{
       if (clickAudio) clickAudio.play().catch(()=>{});
-      saveBtn.disabled = true;
-      saveBtn.textContent = '保存中...';
+      saveBtn.disabled = true; saveBtn.textContent = '保存中...';
       try {
         const round = v => Math.round(v*10000)/10000;
         const compressPoints = pts => pts.map(p => ({ x: round(p.x), y: round(p.y) }));
         const payload = {
-          strokes: strokes.map(s => ({
-            type: s.type,
-            color: s.color,
-            widthNorm: Math.round((s.widthNorm || 0.004) * 100000)/100000,
-            points: compressPoints(s.points)
-          })),
-          authorName: (authorNameInput.value || '').slice(0,80),
+          strokes: strokes.map(s => ({ type:s.type, color:s.color, widthNorm:Math.round((s.widthNorm||0.004)*100000)/100000, points:compressPoints(s.points) })),
+          authorName: (authorNameInput.value||'').slice(0,80),
           ownerId: localStorage.getItem(OWNER_KEY),
           createdAt: serverTimestamp()
         };
         await addDoc(collection(db, 'emas'), payload);
         alert('保存しました！ホームに戻ります。');
-        strokes = [];
-        redrawStrokes();
-        showScreen('home');
-      } catch (err){
-        console.error('save error', err);
-        alert('保存に失敗しました。Firestore の権限を確認してください（permission-denied 等）。');
-      } finally {
-        saveBtn.disabled = false;
-        saveBtn.textContent = '保存';
-      }
+        strokes = []; redrawStrokes(); showScreen('home');
+      } catch (err){ console.error('save error', err); alert('保存に失敗しました。Firestore の権限を確認してください。'); }
+      finally{ saveBtn.disabled=false; saveBtn.textContent='保存'; }
     });
 
-    // Gallery: ensure emaImage loaded before rendering thumbnails — if not loaded, re-render after loaded
+    // gallery: use offscreen stroke layer to avoid eraser affecting background
     async function fetchGalleryOnce(){
       try {
-        const q = query(collection(db, 'emas'), orderBy('createdAt','desc'));
+        const q = query(collection(db,'emas'), orderBy('createdAt','desc'));
         const snap = await getDocs(q);
-        const items = [];
-        snap.forEach(d => items.push({ id: d.id, ...d.data() }));
-        // if background not loaded yet, wait a bit so thumbnails render correctly
-        if (!emaLoaded) {
-          await waitForEma;
-        }
+        const items = []; snap.forEach(d => items.push({ id:d.id, ...d.data() }));
+        if (!emaLoaded) await waitForEma;
         renderGallery(items);
-      } catch (err){
-        console.error('fetchGalleryOnce', err);
-        alert('ギャラリー取得エラー。Firestore の rules を確認してください。');
-      }
+      } catch (err){ console.error('fetchGalleryOnce', err); alert('ギャラリー取得エラー。Firestore の rules を確認してください。'); }
     }
 
     function renderGallery(items){
       galleryRow.innerHTML = '';
       items.forEach(item => {
-        const wrap = document.createElement('div');
-        wrap.className = 'gallery-item';
-        const TH_W = 720;
-        const TH_H = Math.round((LOGICAL_H / LOGICAL_W) * TH_W);
-        const thumb = document.createElement('canvas');
-        thumb.width = TH_W; thumb.height = TH_H;
+        const wrap = document.createElement('div'); wrap.className='gallery-item';
+        const TH_W = 720, TH_H = Math.round((LOGICAL_H/LOGICAL_W)*TH_W);
+        const thumb = document.createElement('canvas'); thumb.width = TH_W; thumb.height = TH_H;
         const tctx = thumb.getContext('2d');
 
-        // draw background image onto thumbnail. If ema not loaded, leave transparent and schedule re-render once loaded.
-        if (emaLoaded && emaImage.naturalWidth > 0){
-          tctx.drawImage(emaImage, 0, 0, TH_W, TH_H);
+        // draw background to thumbnail
+        if (emaLoaded && emaImage.naturalWidth>0){
+          tctx.drawImage(emaImage,0,0,TH_W,TH_H);
         } else {
-          // do NOT fill white — leave transparent so destination-out eraser works correctly visually
           tctx.clearRect(0,0,TH_W,TH_H);
-          // schedule redraw when ema loaded
-          waitForEma.then(() => {
-            // re-render this specific thumbnail (if still in DOM)
-            try {
-              tctx.clearRect(0,0,TH_W,TH_H);
-              tctx.drawImage(emaImage, 0, 0, TH_W, TH_H);
-              // replay strokes after background drawn
-              if (item.strokes && Array.isArray(item.strokes)){
-                for (const st of item.strokes){
-                  if (st.type === 'pen') tctx.globalCompositeOperation = 'source-over';
-                  else tctx.globalCompositeOperation = 'destination-out';
-                  tctx.strokeStyle = st.color || '#000';
-                  tctx.lineWidth = (st.widthNorm || 0.004) * TH_W;
-                  tctx.lineCap = 'round';
-                  tctx.lineJoin = 'round';
-                  tctx.beginPath();
-                  for (let i=0;i<st.points.length;i++){
-                    const p = st.points[i];
-                    const x = p.x * TH_W;
-                    const y = p.y * TH_H;
-                    if (i===0) tctx.moveTo(x,y); else tctx.lineTo(x,y);
-                  }
-                  tctx.stroke();
-                }
-                tctx.globalCompositeOperation = 'source-over';
-              }
-            } catch(e){ console.warn('thumb redraw error', e); }
-          });
         }
 
-        // draw strokes
+        // create offscreen stroke layer and draw strokes there so destination-out only affects stroke-layer
+        const strokeLayer = document.createElement('canvas'); strokeLayer.width = TH_W; strokeLayer.height = TH_H;
+        const sc = strokeLayer.getContext('2d');
+        sc.clearRect(0,0,TH_W,TH_H);
         if (item.strokes && Array.isArray(item.strokes)){
           for (const st of item.strokes){
-            if (st.type === 'pen') tctx.globalCompositeOperation = 'source-over';
-            else tctx.globalCompositeOperation = 'destination-out';
-            tctx.strokeStyle = st.color || '#000';
-            tctx.lineWidth = (st.widthNorm || 0.004) * TH_W;
-            tctx.lineCap = 'round';
-            tctx.lineJoin = 'round';
-            tctx.beginPath();
+            if (st.type === 'pen') sc.globalCompositeOperation = 'source-over';
+            else sc.globalCompositeOperation = 'destination-out';
+            sc.strokeStyle = st.color || '#000';
+            sc.lineWidth = (st.widthNorm || 0.004) * TH_W;
+            sc.lineCap = 'round'; sc.lineJoin = 'round';
+            sc.beginPath();
             for (let i=0;i<st.points.length;i++){
               const p = st.points[i];
-              const x = p.x * TH_W;
-              const y = p.y * TH_H;
-              if (i===0) tctx.moveTo(x,y); else tctx.lineTo(x,y);
+              const x = p.x * TH_W, y = p.y * TH_H;
+              if (i===0) sc.moveTo(x,y); else sc.lineTo(x,y);
             }
-            tctx.stroke();
+            sc.stroke();
           }
-          tctx.globalCompositeOperation = 'source-over';
+          sc.globalCompositeOperation = 'source-over';
         }
+        // now composite strokeLayer over background (strokeLayer has transparency removed by eraser operations, background untouched)
+        tctx.drawImage(strokeLayer, 0, 0);
 
         wrap.appendChild(thumb);
-        const meta = document.createElement('div');
-        meta.className = 'meta';
-        const leftspan = document.createElement('div');
-        leftspan.style.display='flex'; leftspan.style.alignItems='center';
-        const nameEl = document.createElement('span'); nameEl.className='author';
-        nameEl.textContent = item.authorName ? `by ${item.authorName}` : 'by 匿名';
+        const meta = document.createElement('div'); meta.className='meta';
+        const leftspan = document.createElement('div'); leftspan.style.display='flex'; leftspan.style.alignItems='center';
+        const nameEl = document.createElement('span'); nameEl.className='author'; nameEl.textContent = item.authorName ? `by ${item.authorName}` : 'by 匿名';
         leftspan.appendChild(nameEl);
-        const time = document.createElement('small');
-        if (item.createdAt && item.createdAt.seconds) time.textContent = new Date(item.createdAt.seconds*1000).toLocaleString();
-        meta.appendChild(leftspan);
-        meta.appendChild(time);
+        const time = document.createElement('small'); if (item.createdAt && item.createdAt.seconds) time.textContent = new Date(item.createdAt.seconds*1000).toLocaleString();
+        meta.appendChild(leftspan); meta.appendChild(time);
 
-        // deletion: only owner or admin
         const myOwnerId = localStorage.getItem(OWNER_KEY);
         if (isAdminUser() || item.ownerId === myOwnerId){
-          const del = document.createElement('button');
-          del.textContent = '削除';
-          del.onclick = async ()=>{
-            if (!confirm('本当に削除しますか？')) return;
-            try {
-              await deleteDoc(doc(db, 'emas', item.id));
-              alert('削除しました');
-              fetchGalleryOnce();
-            } catch(e){
-              console.error('delete failed', e);
-              alert('削除に失敗しました');
-            }
-          };
+          const del = document.createElement('button'); del.textContent='削除';
+          del.onclick = async ()=>{ if (!confirm('本当に削除しますか？')) return; try { await deleteDoc(doc(db,'emas',item.id)); alert('削除しました'); fetchGalleryOnce(); } catch(e){ console.error(e); alert('削除に失敗しました'); } };
           meta.appendChild(del);
         }
 
-        wrap.appendChild(meta);
-        galleryRow.appendChild(wrap);
+        wrap.appendChild(meta); galleryRow.appendChild(wrap);
       });
     }
 
-    // need doc reference for deleteDoc; get it from firestore module - create wrapper to avoid missing import if not available
-    // (we imported doc at top)
-
-    // gallery button: open and subscribe
+    // ensure doc is available (deleteDoc uses doc)
+    // wiring gallery button
     qs('#btn-gallery').addEventListener('click', ()=>{
-      showScreen('gallery');
-      fetchGalleryOnce();
+      showScreen('gallery'); fetchGalleryOnce();
       if (window._galleryUnsub) window._galleryUnsub();
-      const q = query(collection(db, 'emas'), orderBy('createdAt','desc'));
+      const q = query(collection(db,'emas'), orderBy('createdAt','desc'));
       window._galleryUnsub = onSnapshot(q, snap => {
-        const items = [];
-        snap.forEach(d => items.push({ id: d.id, ...d.data() }));
+        const items = []; snap.forEach(d => items.push({ id:d.id, ...d.data() }));
         renderGallery(items);
-      }, err => { console.error('onSnapshot gallery error', err); });
+      }, err => console.error('onSnapshot gallery error', err));
     });
 
-    backFromGallery.addEventListener('click', ()=>{
-      if (window._galleryUnsub){ window._galleryUnsub(); window._galleryUnsub = null; }
-      showScreen('home');
-    });
+    backFromGallery.addEventListener('click', ()=>{ if (window._galleryUnsub){ window._galleryUnsub(); window._galleryUnsub = null; } showScreen('home'); });
 
     // omikuji
-    omikujiVideo.src = CONFIG.omikujiMediaUrl;
-    omikujiVideo.crossOrigin = 'anonymous';
-    playOmikujiBtn.addEventListener('click', ()=>{
+    omikujiVideo.src = CONFIG.omikujiMediaUrl; omikujiVideo.crossOrigin='anonymous';
+    playOmikujiBtn.addEventListener('click', ()=> {
       if (clickAudio) clickAudio.play().catch(()=>{});
-      omikujiResult.style.display = 'none';
-      omikujiVideo.style.display = 'block';
-      omikujiVideo.currentTime = 0;
-      omikujiVideo.play().catch(()=>{});
-      const onEnd = ()=>{
-        omikujiVideo.style.display = 'none';
-        const arr = CONFIG.omikujiResultImages;
-        if (!arr || arr.length === 0) { alert('おみくじ画像が設定されていません。'); return; }
-        const pick = arr[Math.floor(Math.random() * arr.length)];
-        omikujiResult.src = pick;
-        omikujiResult.style.display = 'block';
-        omikujiVideo.removeEventListener('ended', onEnd);
-      };
+      omikujiResult.style.display='none'; omikujiVideo.style.display='block'; omikujiVideo.currentTime=0; omikujiVideo.play().catch(()=>{});
+      const onEnd = ()=>{ omikujiVideo.style.display='none'; const arr=CONFIG.omikujiResultImages; if (!arr || arr.length===0){ alert('おみくじ画像が設定されていません。'); return; } const pick = arr[Math.floor(Math.random()*arr.length)]; omikujiResult.src = pick; omikujiResult.style.display='block'; omikujiVideo.removeEventListener('ended', onEnd); };
       omikujiVideo.addEventListener('ended', onEnd);
     });
 
-    // navigation (ensure resize/redraw when showing draw)
+    // navigation
     function showScreen(id){
-      qsa('.screen').forEach(s => s.classList.remove('active'));
-      qs('#' + id).classList.add('active');
-      window.scrollTo({top:0, behavior:'smooth'});
-      if (id === 'draw'){
-        // ensure sizes and redrawing after layout
-        requestAnimationFrame(()=>{ resizeLayerCanvases(); drawBackground(); redrawStrokes(); });
-        setTimeout(()=>{ resizeLayerCanvases(); drawBackground(); redrawStrokes(); }, 80);
-      }
+      qsa('.screen').forEach(s => s.classList.remove('active')); qs('#'+id).classList.add('active'); window.scrollTo({top:0,behavior:'smooth'});
+      if (id==='draw'){ requestAnimationFrame(()=>{ resizeLayerCanvases(); drawBackground(); redrawStrokes(); }); setTimeout(()=>{ resizeLayerCanvases(); drawBackground(); redrawStrokes(); }, 80); }
     }
     btnDraw.addEventListener('click', ()=> showScreen('draw'));
     btnOmikuji.addEventListener('click', ()=> showScreen('omikuji'));
@@ -661,68 +463,19 @@
     backFromOmikuji.addEventListener('click', ()=> showScreen('home'));
 
     // admin UI
-    function updateAdminUI(){
-      if (isAdminUser()){
-        adminBadge.classList.add('visible');
-        adminNotLogged.style.display = 'none';
-        adminLogged.style.display = 'block';
-      } else {
-        adminBadge.classList.remove('visible');
-        adminNotLogged.style.display = 'block';
-        adminLogged.style.display = 'none';
-      }
-    }
-    adminOpenBtn.addEventListener('click', ()=>{
-      adminModal.style.display = 'flex';
-      adminModal.setAttribute('aria-hidden','false');
-      updateAdminUI();
-    });
-    adminCancel.addEventListener('click', ()=>{
-      adminModal.style.display = 'none';
-      adminModal.setAttribute('aria-hidden','true');
-      adminPass.value = '';
-    });
-    adminLoginBtn.addEventListener('click', ()=>{
-      const pass = adminPass.value || '';
-      if (pass === '1122'){
-        localStorage.setItem(ADMIN_KEY, '1');
-        alert('管理者ログインしました（このブラウザで常時有効）');
-        adminPass.value = '';
-        updateAdminUI();
-      } else {
-        alert('パスワードが違います');
-      }
-    });
-    adminLogout.addEventListener('click', ()=>{
-      if (!confirm('ログアウトしますか？')) return;
-      localStorage.removeItem(ADMIN_KEY);
-      alert('ログアウトしました');
-      updateAdminUI();
-    });
-    adminClose.addEventListener('click', ()=>{
-      adminModal.style.display = 'none';
-      adminModal.setAttribute('aria-hidden','true');
-    });
-    adminModal.addEventListener('click', (e)=>{
-      if (e.target === adminModal){
-        adminModal.style.display = 'none';
-        adminModal.setAttribute('aria-hidden','true');
-      }
-    });
+    function updateAdminUI(){ if (isAdminUser()){ adminBadge.classList.add('visible'); adminNotLogged.style.display='none'; adminLogged.style.display='block'; } else { adminBadge.classList.remove('visible'); adminNotLogged.style.display='block'; adminLogged.style.display='none'; } }
+    adminOpenBtn.addEventListener('click', ()=>{ adminModal.style.display='flex'; adminModal.setAttribute('aria-hidden','false'); updateAdminUI(); });
+    adminCancel.addEventListener('click', ()=>{ adminModal.style.display='none'; adminModal.setAttribute('aria-hidden','true'); adminPass.value=''; });
+    adminLoginBtn.addEventListener('click', ()=>{ const pass = adminPass.value||''; if (pass==='1122'){ localStorage.setItem(ADMIN_KEY,'1'); alert('管理者ログインしました（このブラウザで常時有効）'); adminPass.value=''; updateAdminUI(); } else alert('パスワードが違います'); });
+    adminLogout.addEventListener('click', ()=>{ if (!confirm('ログアウトしますか？')) return; localStorage.removeItem(ADMIN_KEY); alert('ログアウトしました'); updateAdminUI(); });
+    adminClose.addEventListener('click', ()=>{ adminModal.style.display='none'; adminModal.setAttribute('aria-hidden','true'); });
+    adminModal.addEventListener('click', (e)=>{ if (e.target===adminModal){ adminModal.style.display='none'; adminModal.setAttribute('aria-hidden','true'); } });
 
     // init
-    function init(){
-      resizeLayerCanvases();
-      // if ema already loaded, draw background; else waitForEma handler draws
-      if (emaLoaded) drawBackground();
-      redrawStrokes();
-      updateAdminUI();
-    }
+    function init(){ resizeLayerCanvases(); if (emaLoaded) drawBackground(); redrawStrokes(); updateAdminUI(); }
     init();
 
-    // expose debug
     window._EMA_APP = { CONFIG, db, strokes, redrawStrokes, isAdminUser, ownerId: localStorage.getItem(OWNER_KEY) };
-
   </script>
 </body>
 </html>
