@@ -222,6 +222,8 @@
     const canvasWrap = qs('#canvas-wrap'), bgCanvas = qs('#bg-canvas'), strokesCanvas = qs('#strokes-canvas');
     const galleryRow = qs('#gallery-row');
     const playOmikujiBtn = qs('#play-omikuji'), omikujiVideo = qs('#omikuji-video'), omikujiResult = qs('#omikuji-result');
+    let lastOmikujiImageUrl = null;
+
 
     const clickAudio = CONFIG.clickSoundUrl ? new Audio(CONFIG.clickSoundUrl) : null;
 
@@ -466,7 +468,11 @@
     playOmikujiBtn.addEventListener('click', ()=> {
       if (clickAudio) clickAudio.play().catch(()=>{});
       omikujiResult.style.display='none'; omikujiVideo.style.display='block'; omikujiVideo.currentTime=0; omikujiVideo.play().catch(()=>{});
-      const onEnd = ()=>{ omikujiVideo.style.display='none'; const arr=CONFIG.omikujiResultImages; if (!arr || arr.length===0){ alert('おみくじ画像が設定されていません。'); return; } const pick = arr[Math.floor(Math.random()*arr.length)]; omikujiResult.src = pick; omikujiResult.style.display='block'; omikujiVideo.removeEventListener('ended', onEnd); };
+      const onEnd = ()=>{ omikujiVideo.style.display='none'; const arr=CONFIG.omikujiResultImages; if (!arr || arr.length===0){ alert('おみくじ画像が設定されていません。'); return; } const pick = arr[Math.floor(Math.random()*arr.length)];
+lastOmikujiImageUrl = pick; // ★追加
+omikujiResult.src = pick;
+omikujiResult.style.display='block';
+ omikujiVideo.removeEventListener('ended', onEnd); };
       omikujiVideo.addEventListener('ended', onEnd);
     });
 
@@ -494,6 +500,41 @@
     init();
 
     window._EMA_APP = { CONFIG, db, strokes, redrawStrokes, isAdminUser, ownerId: localStorage.getItem(OWNER_KEY) };
+
+
+
+
+    const shareOmikujiBtn = document.getElementById('share-omikuji-x');
+
+shareOmikujiBtn.addEventListener('click', () => {
+  if (!lastOmikujiImageUrl) {
+    alert('先におみくじを引いてください');
+    return;
+  }
+
+  // おみくじ用投稿文
+  const tweetText = encodeURIComponent('おみくじを引きました！ #ユメのおみくじ');
+  const tweetUrl = `https://twitter.com/intent/tweet?text=${tweetText}`;
+
+  // 画像は表示せず、保存可能な形で一度だけ開く（裏導線）
+  const imgWindow = window.open();
+  imgWindow.document.write(`
+    <!doctype html>
+    <html lang="ja">
+    <head><meta charset="utf-8"><title>おみくじ画像</title></head>
+    <body style="margin:0;display:flex;justify-content:center;align-items:center;background:#f5f5f5">
+      <img src="${lastOmikujiImageUrl}" style="max-width:100%;height:auto"/>
+      <p style="position:fixed;bottom:10px;font-size:12px;color:#666">
+        この画像を保存してXに投稿できます
+      </p>
+    </body>
+    </html>
+  `);
+
+  // X投稿画面を開く（#ユメのおみくじ 入り）
+  window.open(tweetUrl, '_blank');
+});
+
 
     // ===== X投稿用 絵馬画像生成 =====
 const shareXBtn = document.getElementById('share-x');
