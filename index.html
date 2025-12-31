@@ -230,12 +230,8 @@
     const toolEraser = qs('#tool-eraser');
     const sizeRange = qs('#size-range');
     const sizeVal = qs('#size-val');
-    const clearBtn = qs('#clear-canvas');
-    clearBtn.addEventListener('click', ()=>{
-  if (!confirm('描いた線をすべて消しますか？（背景はそのまま）')) return;
-  strokes = [];
-  redrawStrokes();
-});
+
+
     const saveBtn = qs('#save-ema');
 
     const bgCanvas = qs('#bg-canvas');
@@ -409,11 +405,6 @@
       sizeVal.textContent = penSize;
     });
 
-    clearBtn.addEventListener('click', ()=>{
-      if (!confirm('描いた線をすべて消しますか？（背景はそのまま）')) return;
-      strokes = [];
-      redrawStrokes();
-    });
 
     // redraw strokes on strokesCanvas (replay saved strokes + current)
     function redrawStrokes(){
