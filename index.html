@@ -613,7 +613,12 @@
       qs('#' + id).classList.add('active');
       window.scrollTo({top:0, behavior:'smooth'});
     }
-    btnDraw.addEventListener('click', ()=> showScreen('draw'));
+btnDraw.addEventListener('click', ()=>{
+  showScreen('draw');
+  drawBackground();     // ★追加
+  redrawStrokes();      // ★追加
+});
+
     btnOmikuji.addEventListener('click', ()=> showScreen('omikuji'));
     backFromDraw.addEventListener('click', ()=> showScreen('home'));
     backFromOmikuji.addEventListener('click', ()=> showScreen('home'));
